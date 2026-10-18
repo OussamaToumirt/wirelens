@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+            tools:ignore="QueryAllPackagesPermission" />
+
+    <uses-permission
+            android:name="android.permission.READ_PHONE_STATE"
+            tools:node="remove" />
+    <uses-permission
+            android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+            tools:node="remove" />
+
+    <uses-feature
+            android:name="android.software.leanback"
+            android:required="false" />
+    <uses-feature
+            android:name="android.hardware.touchscreen"
+            android:required="false" />
+    <uses-feature
+            android:name="android.hardware.camera"
+            android:required="false" />
+
+    <application
+            android:name=".HttpToolkitApplication"
+            android:allowBackup="true"
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:supportsRtl="true"
+            android:theme="@style/AppTheme"
+            tools:targetApi="m" android:usesCleartextTraffic="true"
+            android:largeHeap="true"
+            android:banner="@drawable/ic_tv_banner">
+        <service
+            android:name=".ProxyVpnService"
+            android:foregroundServiceType="systemExempted"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:exported="true"
+            tools:ignore="ForegroundServicePermission">
+            <intent-filter>
+                <action android:name="android.net.VpnService"/>
+                <action android:name="tech.httptoolkit.android.ProxyVpnService"/>
+            </intent-filter>
+        </service>
+
+        <activity
+                android:name=".main.MainActivity"
+                android:launchMode="singleTask"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter
+                    tools:targetApi="m" android:autoVerify="true"
+                    >
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="https"
+                        android:host="android.wirelens.internal"
+                        android:pathPrefix="/connect" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Alias that allows remote intents of ACTIVATE/DEACTIVATE from other apps, but only
+            if they have INJECT_EVENTS (restricted system only permission, equivalent to complete
+            control of the app anyway). In practice this is used to limit remote control to the
+            shell user via ADB. It's important to lock this down or other apps could activate
+            the VPN and pass a cert to send all traffic from the phone anywhere without prompts.
+        -->
+        <activity-alias
+                android:name=".RemoteControlMainActivity"
+                android:targetActivity=".main.MainActivity"
+                android:permission="android.permission.INJECT_EVENTS"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="dev.wirelens.android.ACTIVATE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="https"
+                        android:host="android.wirelens.internal"
+                        android:pathPrefix="/connect" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="dev.wirelens.android.DEACTIVATE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity android:name=".qrscan.QRScanActivity" android:parentActivityName=".main.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".main.MainActivity" />
+        </activity>
+
+        <activity android:name=".appselection.ApplicationListActivity" />
+        <activity android:name=".portfilter.PortListActivity" />
+
+        <meta-data android:name="search-engine" android:resource="@xml/noindex" />
+
+        <meta-data android:name="io.sentry.auto-init" android:value="false" />
+        <meta-data android:name="io.sentry.enabled" android:value="${sentryEnabled}" />
+        <meta-data android:name="io.sentry.dsn" android:value="${sentryDsn}" />
+    </application>
+</manifest>

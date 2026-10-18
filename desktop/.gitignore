@@ -1,0 +1,11 @@
+node_modules
+out/
+build/
+dist/
+httptoolkit-server/
+appveyor-tools/
+.playwright/
+httptoolkit-server.tar.gz
+httptoolkit-cli
+ui/
+NOTICE.md

@@ -1,0 +1,67 @@
+#!/bin/bash
+
+set -e
+
+ls -la *
+
+tar -xzf ./distributables/v*/httptoolkit-server-*-$1-$2.tar.gz
+
+echo "\nStarting server..."
+
+./httptoolkit-server/bin/httptoolkit-server start &
+SERVER_PID=$!
+
+echo "Waiting for server..."
+for i in {1..30}; do
+    if curl -s http://127.0.0.1:45456/ >/dev/null 2>&1; then
+        echo "Server is up"
+        break
+    fi
+    sleep 1
+done
+
+echo "\nTesting server..."
+
+# CSRF protection fully blocks unrecognized/missing origin requests:
+CURL_OPTIONS="--silent --fail -i"
+WITH_ORIGIN="-HOrigin: https://app.httptoolkit.tech"
+AS_JSON="-HContent-Type: application/json"
+
+echo "\nCan start a Mockttp server"?
+# Uses the default config from the UI:
+curl $CURL_OPTIONS "$WITH_ORIGIN" "$AS_JSON" 'http://127.0.0.1:45456/start' \
+    --data '{"plugins":{"http":{"options":{"cors":false,"suggestChanges":false,"http2":"fallback","https":{"tlsPassthrough":[]}}},"webrtc":{}}}'
+
+echo "\nIs TLS fingerprint mirroring available?"
+# The UI turns mirroring on for every passthrough rule, but it needs tls-impersonate: an
+# optional native module that the bundle requires externally, so it's easily lost when
+# packaging. Resolve it exactly as the bundle does, and check the native addon loads.
+./httptoolkit-server/bin/node -e "if (!require(require.resolve('tls-impersonate', { paths: ['./httptoolkit-server/bundle'] })).isSupported()) { console.error('TLS fingerprint mirroring is unavailable in this build'); process.exit(1); }"
+
+echo "\nCan query the API server version?"
+curl $CURL_OPTIONS "$WITH_ORIGIN" http://127.0.0.1:45457/version
+
+echo "\nCan get config?"
+curl $CURL_OPTIONS "$WITH_ORIGIN" http://127.0.0.1:45457/config
+
+echo "\nCan query interceptors?"
+curl $CURL_OPTIONS "$WITH_ORIGIN" http://127.0.0.1:45457/interceptors
+
+echo "\nCan trigger update?"
+# (can't test that it actually updates, unfortunately)
+curl $CURL_OPTIONS "$WITH_ORIGIN" -X POST http://127.0.0.1:45457/update
+
+# ^ This will fail if they receive anything but a 200 result.
+# This ensures that the server is startable, and has minimal functionality for launch.
+
+echo "\nCan run ctl help?"
+./httptoolkit-server/bin/httptoolkit-server ctl help | grep -q "HTTP Toolkit Remote Control"
+
+echo "\nCan run ctl status?"
+CTL_STATUS=$(./httptoolkit-server/bin/httptoolkit-server ctl status)
+echo "$CTL_STATUS" | grep -q '"running":true'
+
+echo "\nCan run mcp initialize?"
+MCP_RESPONSE=$(echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' \
+    | ./httptoolkit-server/bin/httptoolkit-server mcp 2>/dev/null | head -1)
+echo "$MCP_RESPONSE" | grep -q '"protocolVersion"'

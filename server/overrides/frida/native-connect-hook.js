@@ -1,0 +1,353 @@
+/**
+ * In some cases, proxy configuration by itself won't work. This notably includes Flutter apps (which ignore
+ * system/JVM configuration entirely) and plausibly other apps intentionally ignoring proxies. To handle that
+ * we hook native connect() calls directly, to redirect traffic on all ports to the target.
+ *
+ * This handles all attempts to connect an outgoing socket, and for all TCP connections opened it will
+ * manually replace the connect() parameters so that the socket connects to the proxy instead of the
+ * 'real' destination.
+ *
+ * This doesn't help with certificate trust (you still need some kind of certificate setup) but it does ensure
+ * the proxy receives all connections (and so will see if connections don't trust its CA). It's still useful
+ * to do proxy config alongside this, as applications may behave a little more 'correctly' if they're aware
+ * they're using a proxy rather than doing so unknowingly.
+ *
+ * Source available at https://github.com/httptoolkit/frida-interception-and-unpinning/
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-FileCopyrightText: Tim Perry <tim@httptoolkit.com>
+ */
+
+(() => {
+    const PROXY_HOST_IPv4_BYTES = PROXY_HOST.split('.').map(part => parseInt(part, 10));
+    const IPv6_MAPPING_PREFIX_BYTES = [0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xff, 0xff];
+    const PROXY_HOST_IPv6_BYTES = IPv6_MAPPING_PREFIX_BYTES.concat(PROXY_HOST_IPv4_BYTES);
+
+    // Flags for fcntl():
+    const F_GETFL = 3;
+    const F_SETFL = 4;
+    const O_NONBLOCK = (Process.platform === 'darwin')
+        ? 4
+        : 2048; // Linux/Android
+
+    const ECONNREFUSED = (Process.platform === 'darwin')
+        ? 61
+        : 111; // Linux/Android
+
+    let fcntl, send, recv, poll, conn;
+    try {
+        const systemModules = [
+            'libc.so',                // Android
+            'libc.so.6',              // Linux
+            'libsystem_c.dylib',      // iOS
+            'libsystem_kernel.dylib' // iOS (syscall wrappers, e.g. fcntl)
+        ].map((name) => Process.findModuleByName(name))
+         .filter((mod) => mod !== null);
+
+        if (systemModules.length === 0) throw new Error("Could not find any libc/libsystem module");
+
+        const resolveExport = (name) => {
+            for (const mod of systemModules) {
+                const addr = mod.findExportByName(name);
+                if (addr) return addr;
+            }
+            throw new Error(`Could not resolve export '${name}' in system modules`);
+        };
+
+        fcntl = new NativeFunction(resolveExport('fcntl'), 'int', ['int', 'int', 'int']);
+        send = new NativeFunction(resolveExport('send'), 'ssize_t', ['int', 'pointer', 'size_t', 'int']);
+        recv = new NativeFunction(resolveExport('recv'), 'ssize_t', ['int', 'pointer', 'size_t', 'int']);
+        poll = new NativeFunction(resolveExport('poll'), 'int', ['pointer', 'ulong', 'int']);
+
+        conn = resolveExport('connect')
+    } catch (e) {
+        console.error("Failed to set up native hooks:", e.message);
+        console.warn('Could not initialize system functions to to hook raw traffic');
+        return;
+    }
+
+    Interceptor.attach(conn, {
+        onEnter(args) {
+            const fd = this.sockFd = args[0].toInt32();
+            const sockType = Socket.type(fd);
+
+            const addrPtr = ptr(args[1]);
+            const addrLen = args[2].toInt32();
+
+            const isTCP = sockType === 'tcp' || sockType === 'tcp6';
+            const isUDP = sockType === 'udp' || sockType === 'udp6';
+            const isIPv6 = sockType === 'tcp6' || sockType === 'udp6';
+
+            if (isTCP || isUDP) {
+                if (addrLen < (isIPv6 ? 24 : 8)) {
+                    if (DEBUG_MODE) {
+                        console.debug(`Ignoring ${sockType} connection with a ${addrLen}-byte address`);
+                    }
+                    this.state = 'ignored';
+                    return;
+                }
+
+                const addrData = addrPtr.readByteArray(addrLen);
+                const portAddrBytes = new DataView(addrData.slice(2, 4));
+                const port = portAddrBytes.getUint16(0, false); // Big endian!
+
+                const shouldBeIgnored = IGNORED_NON_HTTP_PORTS.includes(port);
+                const shouldBeBlocked = BLOCK_HTTP3 && !shouldBeIgnored && isUDP && port === 443;
+
+                // N.b for now we only support TCP interception - UDP direct should be doable,
+                // but SOCKS5 UDP would require a whole different flow. Rarely relevant, especially
+                // if you're blocking HTTP/3.
+                const shouldBeIntercepted = isTCP && !shouldBeIgnored && !shouldBeBlocked;
+
+                const hostBytes = isIPv6
+                    // 16 bytes offset by 8 (2 for family, 2 for port, 4 for flowinfo):
+                    ? new Uint8Array(addrData.slice(8, 8 + 16))
+                    // 4 bytes, offset by 4 (2 for family, 2 for port)
+                    : new Uint8Array(addrData.slice(4, 4 + 4));
+
+                const isIntercepted = port === PROXY_PORT && areArraysEqual(hostBytes,
+                    isIPv6
+                        ? PROXY_HOST_IPv6_BYTES
+                        : PROXY_HOST_IPv4_BYTES
+                );
+
+                if (isIntercepted) return;
+
+                if (shouldBeBlocked) {
+                    if (isIPv6) {
+                        // Skip 8 bytes: 2 family, 2 port, 4 flowinfo, then write :: (all 0s)
+                        for (let i = 0; i < 16; i++) {
+                            addrPtr.add(8 + i).writeU8(0);
+                        }
+                    } else {
+                        // Skip 4 bytes: 2 family, 2 port, then write 0.0.0.0
+                        addrPtr.add(4).writeU32(0);
+                    }
+
+                    if (DEBUG_MODE) {
+                        console.debug(`Blocking QUIC connection to ${
+                            getReadableAddress(hostBytes, isIPv6)}:${port}`);
+                    }
+                    this.state = 'Blocked';
+                } else if (shouldBeIntercepted) {
+                    // Otherwise, it's an unintercepted connection that should be captured:
+                    this.state = 'intercepting';
+
+                    // For SOCKS, we preserve the original destionation to use in the SOCKS handshake later
+                    // and we temporarily set the socket to blocking mode to do the handshake itself.
+                    if (PROXY_SUPPORTS_SOCKS5) {
+                        this.originalDestination = { host: hostBytes, port, isIPv6 };
+                        this.originalFlags = fcntl(this.sockFd, F_GETFL, 0);
+                        this.isNonBlocking = (this.originalFlags & O_NONBLOCK) !== 0;
+                        if (this.isNonBlocking) {
+                            fcntl(this.sockFd, F_SETFL, this.originalFlags & ~O_NONBLOCK);
+                        }
+                    }
+
+                    if (DEBUG_MODE) {
+                        console.log(`Manually intercepting ${sockType} connection to ${
+                            getReadableAddress(hostBytes, isIPv6)}:${port}`);
+                    }
+
+                    // Overwrite the port with the proxy port:
+                    portAddrBytes.setUint16(0, PROXY_PORT, false); // Big endian
+                    addrPtr.add(2).writeByteArray(portAddrBytes.buffer);
+
+                    // Overwrite the address with the proxy address:
+                    if (isIPv6) {
+                        // Skip 8 bytes: 2 family, 2 port, 4 flowinfo
+                        addrPtr.add(8).writeByteArray(PROXY_HOST_IPv6_BYTES);
+                    } else {
+                        // Skip 4 bytes: 2 family, 2 port
+                        addrPtr.add(4).writeByteArray(PROXY_HOST_IPv4_BYTES);
+                    }
+                } else {
+                    // Explicitly being left alone
+                    if (DEBUG_MODE) {
+                        console.debug(`Allowing unintercepted ${sockType} connection to port ${port}`);
+                    }
+                    this.state = 'ignored';
+                }
+            } else {
+                // Should just be unix domain sockets - UDP & TCP are covered above
+                if (DEBUG_MODE) console.log(`Ignoring ${sockType} connection`);
+                this.state = 'ignored';
+            }
+        },
+        onLeave: function (retval) {
+            if (this.state === 'ignored') return;
+
+            if (this.state === 'intercepting' && PROXY_SUPPORTS_SOCKS5) {
+                const connectSuccess = retval.toInt32() === 0;
+                const { host, port, isIPv6 } = this.originalDestination;
+
+                let handshakeSuccess = false;
+                try {
+                    if (connectSuccess) {
+                        handshakeSuccess = performSocksHandshake(this.sockFd, host, port, isIPv6);
+                    } else {
+                        console.error(`SOCKS: Failed to connect to proxy at ${PROXY_HOST}:${PROXY_PORT}`);
+                    }
+                } catch (e) {
+                    console.error(`SOCKS: Handshake failed for fd ${this.sockFd}: ${e}`);
+                } finally {
+                    if (this.isNonBlocking) {
+                        fcntl(this.sockFd, F_SETFL, this.originalFlags);
+                    }
+
+                    if (!handshakeSuccess) this.errno = ECONNREFUSED;
+                    retval.replace(handshakeSuccess ? 0 : -1);
+                }
+
+                if (DEBUG_MODE) {
+                    console.debug(handshakeSuccess
+                        ? `SOCKS redirect successful for fd ${this.sockFd} to ${
+                            getReadableAddress(host, isIPv6)}:${port}`
+                        : `SOCKS redirect FAILED for fd ${this.sockFd}`
+                    );
+                }
+            } else if (DEBUG_MODE) {
+                const fd = this.sockFd;
+                const sockType = Socket.type(fd);
+                const address = Socket.peerAddress(fd);
+                console.debug(
+                    `${this.state} ${sockType} fd ${fd} to ${JSON.stringify(address)} (${retval.toInt32()})`
+                );
+            }
+        }
+    });
+
+    console.log(`== Redirecting ${
+        IGNORED_NON_HTTP_PORTS.length === 0
+        ? 'all'
+        : 'all unrecognized'
+    } TCP connections to ${PROXY_HOST}:${PROXY_PORT} ==`);
+
+    const isIPv4Mapped = (/** @type {Uint8Array} */ hostBytes) =>
+        hostBytes.length === 16 &&
+        hostBytes.slice(0, 10).every(b => b === 0) &&
+        hostBytes.slice(10, 12).every(b => b === 255);
+
+    const getReadableAddress = (
+        /** @type {Uint8Array} */ hostBytes,
+        /** @type {boolean} */ isIPv6
+    ) => {
+        if (!isIPv6) {
+            // Return simple a.b.c.d IPv4 format:
+            return [...hostBytes].map(x => x.toString()).join('.');
+        }
+
+        if (isIPv4Mapped(hostBytes)) {
+            // IPv4-mapped IPv6 address - print as IPv4 for readability
+            return '::ffff:'+[...hostBytes.slice(12)].map(x => x.toString()).join('.');
+        }
+
+        else {
+            // Real IPv6:
+            return `[${[...hostBytes].map(x => x.toString(16)).join(':')}]`;
+        }
+    };
+
+    const areArraysEqual = (arrayA, arrayB) => {
+        if (arrayA.length !== arrayB.length) return false;
+        return arrayA.every((x, i) => arrayB[i] === x);
+    };
+
+    const SOCKS_TIMEOUT_MS = 2000;
+    const POLLIN = 0x1;
+
+    const waitForReadable = (sockfd, timeoutMs) => {
+        const pollFd = Memory.alloc(8);
+        pollFd.writeInt(sockfd);
+        pollFd.add(4).writeU16(POLLIN);
+        pollFd.add(6).writeU16(0);
+        return poll(pollFd, 1, timeoutMs) === 1;
+    };
+
+    // recv() repeatedly up to the data length we need (or timeout/hangup)
+    const recvAll = (sockfd, buffer, length) => {
+        let received = 0;
+        const deadline = Date.now() + SOCKS_TIMEOUT_MS;
+        while (received < length) {
+            const remaining = deadline - Date.now();
+            if (remaining <= 0 || !waitForReadable(sockfd, remaining)) return false;
+
+            const read = recv(sockfd, buffer.add(received), length - received, 0).toNumber();
+            if (read <= 0) return false; // Error, or the proxy hung up on us
+            received += read;
+        }
+        return true;
+    };
+
+    function performSocksHandshake(sockfd, targetHostBytes, targetPort, isIPv6) {
+        const hello = Memory.alloc(3).writeByteArray([0x05, 0x01, 0x00]);
+        if (send(sockfd, hello, 3, 0).toNumber() !== 3) {
+            console.error("SOCKS: Failed to send hello");
+            return false;
+        }
+
+        const response = Memory.alloc(2);
+        if (!recvAll(sockfd, response, 2)) {
+            console.error("SOCKS: No auth method reply from the proxy");
+            return false;
+        }
+
+        if (response.readU8() !== 0x05 || response.add(1).readU8() !== 0x00) {
+            console.error("SOCKS: Server rejected auth method");
+            return false;
+        }
+
+        let req = [0x05, 0x01, 0x00]; // VER, CMD(CONNECT), RSV
+
+        // Map IPv6-mapped-IPv4 back to simple IPv4:
+        if (isIPv6 && isIPv4Mapped(targetHostBytes)) {
+            targetHostBytes = targetHostBytes.slice(12);
+            isIPv6 = false;
+        }
+
+        if (isIPv6) {
+            req.push(0x04); // ATYP: IPv6
+        } else { // IPv4
+            req.push(0x01); // ATYP: IPv4
+        }
+
+        req.push(...targetHostBytes, (targetPort >> 8) & 0xff, targetPort & 0xff);
+        const reqBuf = Memory.alloc(req.length).writeByteArray(req);
+
+        if (send(sockfd, reqBuf, req.length, 0).toNumber() !== req.length) {
+            console.error("SOCKS: Failed to send connection request");
+            return false;
+        }
+
+        const replyHeader = Memory.alloc(4);
+        if (!recvAll(sockfd, replyHeader, 4)) {
+            console.error("SOCKS: No connection reply from the proxy");
+            return false;
+        }
+
+        const replyCode = replyHeader.add(1).readU8();
+        if (replyCode !== 0x00) {
+            console.error(`SOCKS: Server returned error code ${replyCode}`);
+            return false;
+        }
+
+        // Reply ends with an address, which we need to consume to avoid leaking into the
+        // normal app traffic afterwards
+        const atyp = replyHeader.add(3).readU8();
+        const addressLength = atyp === 0x01 ? 4 + 2   // IPv4 + port
+            : atyp === 0x04 ? 16 + 2                  // IPv6 + port
+            : 0;
+
+        if (!addressLength) {
+            // Hostnames (ATYP 3) are legal but rare & HTK never uses them, just reject
+            console.error(`SOCKS: Server replied with an unsupported address type ${atyp}`);
+            return false;
+        }
+
+        if (!recvAll(sockfd, Memory.alloc(addressLength), addressLength)) {
+            console.error("SOCKS: Failed to read the bound address");
+            return false;
+        }
+
+        return true;
+    }
+})();

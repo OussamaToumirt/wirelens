@@ -1,0 +1,70 @@
+<resources>
+    <string name="app_name">WireLens</string>
+
+    <string name="vpn_active_notification_title">Interception active</string>
+    <string name="vpn_active_notification_content">WireLens is currently intercepting this device</string>
+    <string name="vpn_active_notification_action">Stop intercepting</string>
+
+    <string name="disconnected_status">Disconnected</string>
+    <string name="disconnecting_status">Disconnecting…</string>
+    <string name="connecting_status">Connecting…</string>
+    <string name="connected_status">Connected</string>
+    <string name="failed_status">Oh no!</string>
+
+    <string name="disconnected_details">To intercept this device, start WireLens on your computer, and activate Android interception there via QR code or using ADB.</string>
+
+    <string name="connected_details">to %s on port %d</string>
+    <string name="connected_tunnel_details">via ADB tunnel</string>
+    <string name="failed_details">We couldn\'t connect to WireLens.\n\nIs it running, and connected to the same network as this device?</string>
+
+    <string name="disabled_connection_status_heading">No certificate trust configured</string>
+    <string name="user_connection_status_enabled_heading">User trust enabled</string>
+    <string name="system_connection_status_disabled_heading">System trust disabled</string>
+    <string name="system_connection_status_enabled_heading">System trust enabled</string>
+    <string name="pre_v7_connection_status_enabled_heading">Certificate trusted</string>
+
+    <string name="none_connection_status_details">Your WireLens certificate is not trusted on this device, so HTTPS traffic will only be available from apps that individually include and trust it.\n\nDisconnect and reconnect to rerun HTTPS certificate setup.</string>
+    <string name="user_connection_status_details">HTTPS interception will only be available for apps that are configured to trust user-installed certificates.</string>
+    <string name="system_connection_status_details">Traffic from all intercepted applications will be available, except those using explicit certificate pinning.</string>
+    <string name="pre_v7_connection_status_details">Traffic from all intercepted applications will be available, except those using explicit certificate pinning.</string>
+
+    <string name="scan_button">Scan/Paste QR code</string>
+    <string name="paste_button">Paste QR code</string>
+    <string name="reconnect_button">Reconnect</string>
+    <string name="manual_button">Connect manually</string>
+    <string name="disconnect_button">Disconnect</string>
+    <string name="docs_button">Read the docs</string>
+    <string name="try_again_button">Try again</string>
+    <string name="test_button">Test interception</string>
+
+    <string name="qr_scan_prompt">Scan WireLens QR code to connect</string>
+    <string name="app_drawable">App Drawable</string>
+    <string name="applications">Applications</string>
+    <string name="all_applications">All applications</string>
+    <string name="show_system">Show system</string>
+    <string name="show_enabled">Show enabled only</string>
+    <string name="enable_all">Enable all apps</string>
+    <string name="disable_all">Disable all apps</string>
+
+    <string name="all_apps">All apps</string>
+    <string name="selected_apps">Selected apps</string>
+    <string name="few_apps">%s app%s</string>
+
+    <string name="default_ports">Default ports</string>
+    <string name="selected_ports">Custom ports</string>
+    <string name="few_ports">%s port%s</string>
+    <string name="add_port_prompt">Add another port</string>
+    <string name="reset_to_default_ports">Reset to default ports</string>
+    <string name="port_config_explanation">WireLens sets the device\'s HTTP proxy configuration, to capture traffic from all apps on any port, but some apps may ignore this.\n\nYou can add ports here to forcibly redirect all outgoing traffic to that port, but be careful, as this will interfere with any non-HTTP traffic on these ports.</string>
+    <string name="cancel">Cancel</string>
+    <string name="proceed">Proceed</string>
+    <string name="open_settings">Open Settings</string>
+
+    <string name="cd_more_options">More options</string>
+    <string name="cd_add_port">Add port</string>
+    <string name="cd_delete_port">Delete port %d</string>
+    <string name="cd_app_icon">App icon for %s</string>
+    <string name="cd_camera_view">Camera view for scanning QR codes</string>
+
+    <string name="menu_reset_to_defaults">Reset to defaults</string>
+</resources>

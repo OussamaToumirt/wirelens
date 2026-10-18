@@ -1,0 +1,1021 @@
+diff --git a/src/api/api-model.ts b/src/api/api-model.ts
+index 0699bad..bb066ef 100644
+--- a/src/api/api-model.ts
++++ b/src/api/api-model.ts
+@@ -35,8 +35,8 @@ async function getToolPaths(): Promise<{ ctl: string[]; mcp: string[] }> {
+     if (resourcesPath) {
+         const ext = process.platform === 'win32' ? '.cmd' : '';
+         return {
+-            ctl: [path.join(resourcesPath, `httptoolkit-ctl${ext}`)],
+-            mcp: [path.join(resourcesPath, `httptoolkit-mcp${ext}`)]
++            ctl: [path.join(resourcesPath, `wirelens-ctl${ext}`)],
++            mcp: [path.join(resourcesPath, `wirelens-mcp${ext}`)]
+         };
+     }
+ 
+diff --git a/src/api/bridge-client.ts b/src/api/bridge-client.ts
+index d738b5a..b042d80 100644
+--- a/src/api/bridge-client.ts
++++ b/src/api/bridge-client.ts
+@@ -56,12 +56,12 @@ export async function apiRequest(
+         socketPaths.push(path.join(
+             '/run/user',
+             `${process.getuid()}`,
+-            'httptoolkit-ctl.sock'
++            'wirelens-ctl.sock'
+         ));
+     } else if (process.platform === 'darwin') {
+         const darwinTempDir = await getDarwinTempDir();
+         const darwinSocketPath = darwinTempDir
+-            ? path.join(darwinTempDir, 'httptoolkit-ctl.sock')
++            ? path.join(darwinTempDir, 'wirelens-ctl.sock')
+             : undefined;
+ 
+         if (darwinSocketPath && !socketPaths.includes(darwinSocketPath)) {
+@@ -170,7 +170,7 @@ function createBridgeConnectionError(
+         return `${socketPath} (${detail || String(error)})`;
+     });
+     const error: any = new Error(
+-        'Cannot connect to the HTTP Toolkit control socket. Tried: ' +
++        'Cannot connect to the WireLens control socket. Tried: ' +
+         attemptsDescription.join(', ')
+     );
+     const representativeAttempt =
+diff --git a/src/api/ui-operation-bridge.ts b/src/api/ui-operation-bridge.ts
+index 95bb595..3de805f 100644
+--- a/src/api/ui-operation-bridge.ts
++++ b/src/api/ui-operation-bridge.ts
+@@ -47,7 +47,7 @@ export const REQUEST_TIMEOUT_MS = 30_000;
+ 
+ export async function getSocketPath(): Promise<string> {
+     if (process.platform === 'win32') {
+-        return '\\\\.\\pipe\\httptoolkit-ctl';
++        return '\\\\.\\pipe\\wirelens-ctl';
+     }
+ 
+     let socketDir: string;
+@@ -63,7 +63,7 @@ export async function getSocketPath(): Promise<string> {
+         }
+     }
+ 
+-    return path.join(socketDir, 'httptoolkit-ctl.sock');
++    return path.join(socketDir, 'wirelens-ctl.sock');
+ }
+ 
+ export class UiOperationBridge extends EventEmitter {
+@@ -90,7 +90,8 @@ export class UiOperationBridge extends EventEmitter {
+     }
+ 
+     isPaidUser(): boolean {
+-        return this.primaryChannel?.user?.isPaidUser() ?? false;
++        // WireLens has no account tiers: every operation is available to ctl & MCP.
++        return true;
+     }
+ 
+     /**
+@@ -280,7 +281,7 @@ export class UiOperationBridge extends EventEmitter {
+                 success: false,
+                 error: {
+                     code: 'TIER_REQUIRED_PRO',
+-                    message: 'CLI remote control requires HTTP Toolkit Pro. ' +
++                    message: 'CLI remote control requires WireLens. ' +
+                         'Get Pro at https://httptoolkit.com/pricing/'
+                 }
+             }));
+@@ -302,7 +303,7 @@ export class UiOperationBridge extends EventEmitter {
+                     success: false,
+                     error: {
+                         code: 'TIER_REQUIRED_PRO',
+-                        message: `The '${parsed.name}' operation requires HTTP Toolkit Pro. ` +
++                        message: `The '${parsed.name}' operation requires WireLens. ` +
+                             'Get Pro at https://httptoolkit.com/pricing/'
+                     }
+                 }));
+diff --git a/src/cert-check-server.ts b/src/cert-check-server.ts
+index 299fe89..f3573ae 100644
+--- a/src/cert-check-server.ts
++++ b/src/cert-check-server.ts
+@@ -7,7 +7,7 @@ import { EPHEMERAL_PORT_RANGE } from './constants';
+ const buildPage = (style: string, script?: string, body?: string) =>
+     `<html>
+         <head>
+-            <title>HTTP Toolkit HTTPS Test</title>
++            <title>WireLens HTTPS Test</title>
+             <meta charset="UTF-8" />
+             <link href="http://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+             <style>
+@@ -146,9 +146,9 @@ export class CertCheckServer {
+                             }
+                         `, ``, `
+                             <p>
+-                                This browser does not trust the HTTP Toolkit certificate authority, so HTTPS traffic can't be intercepted.
++                                This browser does not trust the WireLens certificate authority, so HTTPS traffic can't be intercepted.
+                             </p><p>
+-                                Closing the browser and starting it again from HTTP Toolkit will often resolve this. If not,
++                                Closing the browser and starting it again from WireLens will often resolve this. If not,
+                                 please file a bug at <strong>github.com/httptoolkit/httptoolkit</strong>.
+                             </p>
+                     `)
+diff --git a/src/commands/ctl.ts b/src/commands/ctl.ts
+index 9b8fc02..e7d5cb1 100644
+--- a/src/commands/ctl.ts
++++ b/src/commands/ctl.ts
+@@ -156,11 +156,11 @@ function generateGeneralHelp(operations: HtkOperation[]): string {
+     const descWidth = termWidth - cmdColWidth;
+ 
+     const lines = [
+-        'HTTP Toolkit Remote Control',
++        'WireLens Remote Control',
+         '',
+         'Usage: httptoolkit-ctl <command> [options]',
+         '',
+-        `  ${'status'.padEnd(27)}Check if HTTP Toolkit is running`,
++        `  ${'status'.padEnd(27)}Check if WireLens is running`,
+         `  ${'help'.padEnd(27)}Show this help message`,
+         ''
+     ];
+@@ -354,7 +354,7 @@ async function runCtl(args: string[]): Promise<void> {
+ }
+ 
+ class CtlCommand extends Command {
+-    static description = 'remote control a running HTTP Toolkit instance'
++    static description = 'remote control a running WireLens instance'
+ 
+     static strict = false
+ 
+diff --git a/src/commands/mcp.ts b/src/commands/mcp.ts
+index 26c45e9..ba58bc4 100644
+--- a/src/commands/mcp.ts
++++ b/src/commands/mcp.ts
+@@ -144,16 +144,16 @@ function getBridgeFailureInstruction(error: any): string {
+             'Toolkit and the MCP client after all application components have updated.';
+     }
+     if (error?.statusCode === 401 || error?.statusCode === 403) {
+-        return 'The control server rejected this MCP process. Check that HTTP Toolkit and its ' +
++        return 'The control server rejected this MCP process. Check that WireLens and its ' +
+             'MCP process use the same authentication configuration.';
+     }
+     if (error?.statusCode !== undefined) {
+-        return `The control server returned HTTP ${error.statusCode}. Restart HTTP Toolkit and ` +
++        return `The control server returned HTTP ${error.statusCode}. Restart WireLens and ` +
+             'the MCP client, then retry.';
+     }
+ 
+-    return 'Restart HTTP Toolkit and retry. If the failure continues, report these diagnostic ' +
+-        'details with the HTTP Toolkit and MCP versions.';
++    return 'Restart WireLens and retry. If the failure continues, report these diagnostic ' +
++        'details with the WireLens and MCP versions.';
+ }
+ 
+ const POLL_INTERVAL_MS = 5_000;
+@@ -167,8 +167,8 @@ const OPEN_TIMEOUT_MS = 10_000;
+ function getDefaultHtkExeCandidates(): string[] {
+     if (process.platform === 'darwin') {
+         return [
+-            '/Applications/HTTP Toolkit.app/Contents/MacOS/HTTP Toolkit',
+-            path.join(os.homedir(), 'Applications/HTTP Toolkit.app/Contents/MacOS/HTTP Toolkit')
++            '/Applications/WireLens.app/Contents/MacOS/WireLens',
++            path.join(os.homedir(), 'Applications/WireLens.app/Contents/MacOS/WireLens')
+         ];
+     }
+ 
+@@ -177,16 +177,16 @@ function getDefaultHtkExeCandidates(): string[] {
+         const programFiles = process.env.PROGRAMFILES;
+         const candidates: string[] = [];
+         if (localAppData) {
+-            candidates.push(path.join(localAppData, 'Programs', 'HTTP Toolkit', 'HTTP Toolkit.exe'));
++            candidates.push(path.join(localAppData, 'Programs', 'WireLens', 'WireLens.exe'));
+         }
+         if (programFiles) {
+-            candidates.push(path.join(programFiles, 'HTTP Toolkit', 'HTTP Toolkit.exe'));
++            candidates.push(path.join(programFiles, 'WireLens', 'WireLens.exe'));
+         }
+         return candidates;
+     }
+ 
+     // Linux (default for deb/rpm at least)
+-    return ['/opt/HTTP Toolkit/httptoolkit'];
++    return ['/opt/WireLens/wirelens'];
+ }
+ 
+ async function getLaunchableHtkExePath(): Promise<string | null> {
+@@ -256,25 +256,25 @@ async function startHttpToolkit(
+     if ((await apiRequest('GET', '/api/status').catch(() => null))?.ready) {
+         await refreshOperations();
+         return {
+-            content: [{ type: 'text', text: 'HTTP Toolkit is already running and ready.' }]
++            content: [{ type: 'text', text: 'WireLens is already running and ready.' }]
+         };
+     }
+ 
+     const exePath = await getLaunchableHtkExePath();
+     if (!exePath) {
+         return {
+-            content: [{ type: 'text', text: 'Cannot launch HTTP Toolkit: desktop app path not available.' }],
++            content: [{ type: 'text', text: 'Cannot launch WireLens: desktop app path not available.' }],
+             isError: true
+         };
+     }
+ 
+-    log('Launching HTTP Toolkit desktop app...');
++    log('Launching WireLens desktop app...');
+     try {
+         await launchDesktopApp(exePath);
+     } catch (err) {
+         const message = err instanceof Error ? err.message : String(err);
+         return {
+-            content: [{ type: 'text', text: `Could not launch HTTP Toolkit: ${message}` }],
++            content: [{ type: 'text', text: `Could not launch WireLens: ${message}` }],
+             isError: true
+         };
+     }
+@@ -287,9 +287,9 @@ async function startHttpToolkit(
+         try {
+             const status = await apiRequest('GET', '/api/status');
+             if (status?.ready) {
+-                log('HTTP Toolkit is ready');
++                log('WireLens is ready');
+                 return {
+-                    content: [{ type: 'text', text: 'HTTP Toolkit has been launched and is ready.' }]
++                    content: [{ type: 'text', text: 'WireLens has been launched and is ready.' }]
+                 };
+             }
+         } catch {
+@@ -298,7 +298,7 @@ async function startHttpToolkit(
+     }
+ 
+     return {
+-        content: [{ type: 'text', text: 'HTTP Toolkit was launched but is not yet ready. It may still be starting up — try again in a moment.' }],
++        content: [{ type: 'text', text: 'WireLens was launched but is not yet ready. It may still be starting up — try again in a moment.' }],
+         isError: true
+     };
+ }
+@@ -342,7 +342,7 @@ async function runMcpServer(): Promise<void> {
+         if (shouldExposeBridgeDiagnostics(lastBridgeError)) {
+             tools.push({
+                 name: 'diagnose_httptoolkit_connection',
+-                description: 'Show details and recovery instructions for the current broken HTTP Toolkit connection.',
++                description: 'Show details and recovery instructions for the current broken WireLens connection.',
+                 inputSchema: { type: 'object', properties: {} },
+                 annotations: {
+                     readOnlyHint: true,
+@@ -354,7 +354,7 @@ async function runMcpServer(): Promise<void> {
+         if (await getLaunchableHtkExePath()) {
+             tools.push({
+                 name: 'start_httptoolkit',
+-                description: 'HTTP Toolkit is not currently running. Call this to launch it — once started, more tools will become available.',
++                description: 'WireLens is not currently running. Call this to launch it — once started, more tools will become available.',
+                 inputSchema: { type: 'object', properties: {} }
+             });
+         }
+@@ -372,7 +372,7 @@ async function runMcpServer(): Promise<void> {
+                 return {
+                     content: [{
+                         type: 'text',
+-                        text: 'The HTTP Toolkit connection is no longer reporting a broken state. Refresh the available tools.'
++                        text: 'The WireLens connection is no longer reporting a broken state. Refresh the available tools.'
+                     }]
+                 };
+             }
+@@ -537,7 +537,7 @@ async function runMcpServer(): Promise<void> {
+ }
+ 
+ class McpCommand extends Command {
+-    static description = 'start an MCP server for HTTP Toolkit'
++    static description = 'start an MCP server for WireLens'
+ 
+     static flags = {
+         help: flags.help({ char: 'h' }),
+diff --git a/src/commands/start.ts b/src/commands/start.ts
+index c47f5ed..89a0233 100644
+--- a/src/commands/start.ts
++++ b/src/commands/start.ts
+@@ -29,7 +29,7 @@ initErrorTracking();
+ import { Command, flags } from '@oclif/command'
+ 
+ class HttpToolkitServer extends Command {
+-    static description = 'start the HTTP Toolkit server'
++    static description = 'start the WireLens server'
+ 
+     static flags = {
+         version: flags.version({char: 'v'}),
+@@ -72,7 +72,7 @@ class HttpToolkitServer extends Command {
+         // path to the 'run' bin plus 'start', but we include a shorter fallback just in case too:
+         const currentProcessTitle = [process.argv0, ...process.argv.slice(1)].join(' ');
+         process.title = currentProcessTitle.length > 18
+-            ? "HTTP Toolkit Server"
++            ? "WireLens Server"
+             : "htk-server";
+ 
+     }
+diff --git a/src/constants.ts b/src/constants.ts
+index 8d295cc..48e50c3 100644
+--- a/src/constants.ts
++++ b/src/constants.ts
+@@ -8,11 +8,10 @@ export const APP_ROOT = path.join(__dirname, '..');
+ 
+ export const ALLOWED_ORIGINS = IS_PROD_BUILD
+     ? [
+-        // Prod builds only allow HTTPS app.httptoolkit.tech usage. This
+-        // ensures that no other sites/apps can communicate with your server
+-        // whilst you have the app open. If they could (requires an HTTP mitm),
+-        // they would be able to start proxies & interceptors.
+-        /^https:\/\/app\.httptoolkit\.tech$/
++        // WireLens serves its UI from the desktop app on a loopback port, so prod
++        // builds only accept that origin. Every request still needs the per-launch
++        // auth token, so other local pages can't drive the server either.
++        /^http:\/\/127\.0\.0\.1:\d+$/
+     ]
+     : [
+         // Dev builds can use the main site, or local sites, even if those
+diff --git a/src/error-tracking.ts b/src/error-tracking.ts
+index 09bea15..7520f04 100644
+--- a/src/error-tracking.ts
++++ b/src/error-tracking.ts
+@@ -17,12 +17,8 @@ export function initErrorTracking() {
+     // Note that we disable all error reporting in CI envs, both our own & others. They
+     // tend to be weird configurations that aren't representative so this isn't useful.
+ 
+-    if (!SENTRY_DSN && shouldBeEnabled) {
+-        // If we're a built binary, use the standard DSN automatically
+-        SENTRY_DSN = 'https://5838a5520ad44602ae46793727e49ef5@sentry.io/1371158';
+-    }
+-
+-    if (SENTRY_DSN) {
++    // WireLens has no default error reporting endpoint: only report if SENTRY_DSN is set explicitly.
++    if (SENTRY_DSN && shouldBeEnabled) {
+         Sentry.init({
+             dsn: SENTRY_DSN,
+             release: packageJson.version,
+diff --git a/src/hide-warning-server.ts b/src/hide-warning-server.ts
+index 7488a03..ba002e2 100644
+--- a/src/hide-warning-server.ts
++++ b/src/hide-warning-server.ts
+@@ -30,7 +30,7 @@ export class HideWarningServer {
+ 
+         await this.server.forGet('/hide-warning').thenReply(200, `
+             <html>
+-                <title>HTTP Toolkit Warning Fix</title>
++                <title>WireLens Warning Fix</title>
+                 <meta charset="UTF-8" />
+                 <style>
+                     body { background-color: #d8e2e6; }
+diff --git a/src/index.ts b/src/index.ts
+index a13dcab..add8641 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -1,9 +1,7 @@
+ import * as path from 'path';
+ import * as fs from 'fs';
+ import envPaths from 'env-paths';
+-import { Mutex } from 'async-mutex';
+ 
+-import { delay, isErrorLike } from '@httptoolkit/util';
+ import {
+     PluggableAdmin,
+     generateCACertificate
+@@ -15,7 +13,6 @@ import {
+     MockRTCAdminPlugin
+ } from 'mockrtc';
+ 
+-import updateCommand from '@oclif/plugin-update/lib/commands/update';
+ 
+ import { HttpToolkitServerApi } from './api/api-server';
+ import { checkBrowserConfig } from './browsers';
+@@ -49,8 +46,8 @@ async function generateHTTPSConfig(configPath: string) {
+ 
+         const newCertPair = await generateCACertificate({
+             subject: {
+-                commonName: 'HTTP Toolkit CA',
+-                organizationName: 'HTTP Toolkit CA'
++                commonName: 'WireLens CA',
++                organizationName: 'WireLens CA'
+             }
+         });
+ 
+@@ -129,7 +126,7 @@ function manageBackgroundServices(
+         clearWebExtensionConfig(httpProxyPort);
+ 
+         // In some odd cases, the server can end up running even though all UIs & desktop have exited
+-        // completely. This can be problematic, as it leaves the server holding ports that HTTP Toolkit
++        // completely. This can be problematic, as it leaves the server holding ports that WireLens
+         // needs, and blocks future startups. To avoid this, if no Mock sessions are running at all
+         // for 10 minutes, the server shuts down automatically. Skipped for dev, where that might be OK.
+         // This should catch even hard desktop shell crashes, as sessions shut down automatically if the
+@@ -172,7 +169,7 @@ export async function runHTK(options: {
+     const startTime = Date.now();
+     registerShutdownHandler();
+ 
+-    const configPath = options.configPath || envPaths('httptoolkit', { suffix: '' }).config;
++    const configPath = options.configPath || envPaths('wirelens', { suffix: '' }).config;
+ 
+     await ensureDirectoryExists(configPath);
+     await checkBrowserConfig(configPath);
+@@ -235,49 +232,10 @@ export async function runHTK(options: {
+         () => standalone.ruleParameterKeys
+     );
+ 
+-    const updateMutex = new Mutex();
++    // WireLens doesn't self-update from upstream HTTP Toolkit release channels: updates
++    // ship with the desktop app instead. Update requests from the UI are ignored.
+     apiServer.on('update-requested', () => {
+-        updateMutex.runExclusive(() =>
+-            (<Promise<void>> updateCommand.run(['stable']))
+-            .catch((error) => {
+-                if (isErrorLike(error)) {
+-                    // Did we receive a successful update, that wants to restart the server:
+-                    if (error.code === 'EEXIT') {
+-                        // Block future update checks for 6 hours.
+-
+-                        // If we don't, we'll redownload the same update again every check.
+-                        // We don't want to block it completely though, in case this server
+-                        // stays open for a very long time.
+-                        return delay(1000 * 60 * 60 * 6, { unref: true });
+-                    }
+-
+-                    if (error.code === 'EACCES') {
+-                        // We're running the server without write access to the update directory.
+-                        // Weird, but it happens and there's nothing we can do - ignore it.
+-                        console.log(`Update check failed: ${error.message}`);
+-                        return;
+-                    }
+-
+-                    // Report any HTTP response errors cleanly & explicitly:
+-                    if (error.statusCode) {
+-                        let url: string | undefined;
+-                        if ('http' in error) {
+-                            const request = (error as any).http?.request;
+-                            url = `${request?.protocol}//${request?.host}${request?.path}`
+-                        }
+-
+-                        logError(`Failed to check for updates due to ${error.statusCode} response ${
+-                            url
+-                                ? `from ${url}`
+-                                : 'from unknown URL'
+-                        }`);
+-                        return;
+-                    }
+-                }
+-
+-                console.error(`Failed to check for updates: ${error.message}`, { cause: error });
+-            })
+-        );
++        console.log('Server update requested, but self-update is disabled in WireLens');
+     });
+ 
+     await apiServer.start(options.serverPort);
+diff --git a/src/interceptors/android/adb-commands.ts b/src/interceptors/android/adb-commands.ts
+index 26307ce..cdb9c98 100644
+--- a/src/interceptors/android/adb-commands.ts
++++ b/src/interceptors/android/adb-commands.ts
+@@ -404,7 +404,7 @@ export async function hasCertInstalled(
+     }
+ }
+ 
+-// The device already has an HTTP Toolkit cert. But is it the right one?
++// The device already has an WireLens cert. But is it the right one?
+ const isMatchingCert = async (certStream: stream.Readable, expectedFingerprint: string) => {
+     // Wait until it's clear that the read is successful
+     const data = await streamToBuffer(certStream);
+@@ -807,7 +807,7 @@ export async function createPersistentReverseTunnel(
+     // from the VPN app with a wifi connection, or when ADB is restarted, when using flaky
+     // cables, or switching ADB into root mode, etc etc. This is a problem!
+ 
+-    // To handle this, we constantly reinforce the tunnel while HTTP Toolkit is running &
++    // To handle this, we constantly reinforce the tunnel while WireLens is running &
+     // the device is connected, until it actually persistently fails.
+ 
+     // If tunnel is already being maintained elsewhere, no need to repeat (although we
+diff --git a/src/interceptors/android/android-adb-interceptor.ts b/src/interceptors/android/android-adb-interceptor.ts
+index ee380e2..c9ea91e 100644
+--- a/src/interceptors/android/android-adb-interceptor.ts
++++ b/src/interceptors/android/android-adb-interceptor.ts
+@@ -83,7 +83,7 @@ export class AndroidAdbInterceptor implements Interceptor {
+ 
+         await this.setupCertificateTrust(deviceClient, this.config.https.certContent);
+ 
+-        if (!(await deviceClient.isInstalled('tech.httptoolkit.android.v1'))) {
++        if (!(await deviceClient.isInstalled('dev.wirelens.android'))) {
+             console.log("App not installed, installing...");
+             try {
+                 await deviceClient.install(await streamLatestApk(this.config));
+@@ -103,7 +103,7 @@ export class AndroidAdbInterceptor implements Interceptor {
+         // service for the VPN when in the foreground).
+         await bringToFront(
+             deviceClient,
+-            'tech.httptoolkit.android.v1/tech.httptoolkit.android.MainActivity'
++            'dev.wirelens.android/tech.httptoolkit.android.main.MainActivity'
+         ).catch(logError); // Not that important, so we continue if this fails somehow
+ 
+         // Build a trigger URL to activate the proxy on the device:
+@@ -126,8 +126,8 @@ export class AndroidAdbInterceptor implements Interceptor {
+ 
+         // Use ADB to launch the app with the proxy details
+         await startActivity(deviceClient, {
+-            action: 'tech.httptoolkit.android.ACTIVATE',
+-            data: `https://android.httptoolkit.tech/connect/?data=${intentData}`,
++            action: 'dev.wirelens.android.ACTIVATE',
++            data: `https://android.wirelens.internal/connect/?data=${intentData}`,
+             retries: 10
+         });
+ 
+@@ -148,12 +148,12 @@ export class AndroidAdbInterceptor implements Interceptor {
+                 // the background service to stop the VPN)
+                 await bringToFront(
+                     deviceClient,
+-                    'tech.httptoolkit.android.v1/tech.httptoolkit.android.MainActivity'
++                    'dev.wirelens.android/tech.httptoolkit.android.main.MainActivity'
+                 ).catch(console.log); // Not that important, we continue if this fails somehow
+ 
+                 await deviceClient.startActivity({
+                     wait: true,
+-                    action: 'tech.httptoolkit.android.DEACTIVATE'
++                    action: 'dev.wirelens.android.DEACTIVATE'
+                 }).catch(console.log); // Ditto
+ 
+                 closeReverseTunnel(deviceClient, port, port);
+diff --git a/src/interceptors/android/ct-log-list.ts b/src/interceptors/android/ct-log-list.ts
+index c377823..495755c 100644
+--- a/src/interceptors/android/ct-log-list.ts
++++ b/src/interceptors/android/ct-log-list.ts
+@@ -32,7 +32,7 @@ export interface CtLogList {
+     logs: CtLog[];
+ }
+ 
+-const CT_OPERATOR_NAME_PREFIX = 'HTTP Toolkit CT Operator';
++const CT_OPERATOR_NAME_PREFIX = 'WireLens CT Operator';
+ 
+ const DAY = 24 * 60 * 60 * 1000;
+ 
+@@ -157,7 +157,7 @@ const getOurLogs = (caCertPem: string): CtLog[] =>
+         // requires both: it ignores SCTs from logs that weren't usable yet, and rejects the
+         // entire list if a log's state starts in the future.
+         stateTimestamp: log.usableSince,
+-        description: `HTTP Toolkit CT Log ${i + 1}`,
++        description: `WireLens CT Log ${i + 1}`,
+         // Required but never used:
+         url: `https://ct.httptoolkit.test/log${i + 1}/`
+     }));
+diff --git a/src/interceptors/android/fetch-apk.ts b/src/interceptors/android/fetch-apk.ts
+index b94d25b..a05ef07 100644
+--- a/src/interceptors/android/fetch-apk.ts
++++ b/src/interceptors/android/fetch-apk.ts
+@@ -1,185 +1,29 @@
+ import * as path from 'path';
+ import * as stream from 'stream';
+-import * as semver from 'semver';
+ 
+ import * as fs from '../../util/fs';
+ import { HtkConfig } from '../../config';
+-import { logError } from '../../error-tracking';
++import { APP_ROOT } from '../../constants';
+ 
+-const APK_REPO_RELEASE = 'httptoolkit/httptoolkit-android/releases/latest';
++// WireLens ships its Android app inside the desktop bundle, rather than downloading it
++// from a remote release feed. WIRELENS_APK_PATH can override this, e.g. for development.
++const BUNDLED_APK_PATH = path.join(APP_ROOT, 'bundled-apk', 'wirelens.apk');
+ 
+-async function getLatestRelease(): Promise<
+-    | { version: string, url: string }
+-    | 'unknown-latest'
+-    | undefined
+-> {
+-    try {
+-        const response = await fetch(`https://api.github.com/repos/${APK_REPO_RELEASE}`);
+-
+-        if (response.status === 403 && response.headers.get('x-ratelimit-remaining') === '0') {
+-            // Likely connectable but we can't check the version (API rate limit). Used only if
+-            // we don't have any other APK available.
+-            console.log("Can't check latest APK version due to GitHub rate limit");
+-            return 'unknown-latest';
+-        } else if (!response.ok) {
+-            throw new Error(`Checking latest Android app release failed with ${response.status}`);
+-        }
+-
+-        const release = await response.json();
+-        const apkAsset = release.assets.filter((a: any) => a.name === "httptoolkit.apk")[0];
+-        const releaseName = release.name || release.tag_name;
+-
+-        // Ignore non-semver releases
+-        if (!semver.valid(releaseName)) return;
+-
+-        return {
+-            version: releaseName,
+-            url: apkAsset.browser_download_url
+-        };
+-    } catch (e) {
+-        console.log("Could not check latest Android app release", e);
+-    }
++function getApkPath() {
++    return process.env.WIRELENS_APK_PATH || BUNDLED_APK_PATH;
+ }
+ 
+-async function getAllLocalApks(config: HtkConfig) {
+-    const apks = (await fs.readDir(config.configPath))
+-        .map(filename => filename.match(/^httptoolkit-(.*).apk$/))
+-        .filter((match): match is RegExpMatchArray => !!match)
+-        .map((match) => ({
+-            path: path.join(config.configPath, match[0]),
+-            version: semver.valid(match[1]) || '0.0.0'
+-        }));
+-
+-    apks.sort((apk1, apk2) => {
+-        return -1 * semver.compare(apk1.version, apk2.version);
+-    });
+-
+-    return apks;
++export async function clearAllApks(_config: HtkConfig) {
++    // Nothing is cached locally - the bundled APK is read directly each time.
+ }
+ 
+-async function getLatestLocalApk(config: HtkConfig) {
+-    try {
+-        const apks = await getAllLocalApks(config);
+-        const latestLocalApk = apks[0];
+-        if (!latestLocalApk) return;
+-        else return latestLocalApk;
+-    } catch (e) {
+-        console.log("Could not check for local Android app APK", e);
+-        logError(e);
+-    }
+-}
++export async function streamLatestApk(_config: HtkConfig): Promise<stream.Readable> {
++    const apkPath = getApkPath();
+ 
+-async function updateLocalApk(
+-    version: string,
+-    apkStream: stream.Readable | NodeJS.ReadableStream,
+-    config: HtkConfig
+-) {
+-    console.log(`Updating local APK to version ${version}`);
+-
+-    const {
+-        path: tmpApk,
+-        fd: tmpApkFd,
+-        cleanupCallback
+-    } = await fs.createTmp({ keep: true });
+-
+-    const tmpApkStream = fs.createWriteStream(tmpApk, { fd: tmpApkFd });
+-    apkStream.pipe(tmpApkStream);
+-
+-    await new Promise<void>((resolve, reject) => {
+-        apkStream.on('error', (e) => {
+-            reject(e);
+-            tmpApkStream.close();
+-            cleanupCallback();
+-        });
+-        tmpApkStream.on('error', (e) => {
+-            reject(e);
+-            cleanupCallback();
+-        });
+-        tmpApkStream.on('finish', () => resolve());
+-    });
+-
+-    console.log(`Local APK written to ${tmpApk}`);
+-
+-    await fs.moveFile(tmpApk, path.join(config.configPath, `httptoolkit-${version}.apk`));
+-    console.log(`Local APK moved to ${path.join(config.configPath, `httptoolkit-${version}.apk`)}`);
+-    await cleanupOldApks(config);
+-}
+-
+-export async function clearAllApks(config: HtkConfig) {
+-    const apks = await getAllLocalApks(config);
+-    console.log(`Deleting all APKs: ${apks.map(apk => apk.path).join(', ')}`);
+-    return Promise.all(apks.map(apk => fs.deleteFile(apk.path)));
+-}
+-
+-// Delete all but the most recent APK version in the config directory.
+-async function cleanupOldApks(config: HtkConfig) {
+-    const apks = await getAllLocalApks(config);
+-
+-    console.log(`Deleting old APKs: ${apks.slice(1).map(apk => apk.path).join(', ')}`);
+-
+-    return Promise.all(
+-        apks.slice(1).map(apk => fs.deleteFile(apk.path))
+-    );
+-}
+-
+-export async function streamLatestApk(config: HtkConfig): Promise<stream.Readable> {
+-    const [latestApkRelease, localApk] = await Promise.all([
+-        getLatestRelease(),
+-        getLatestLocalApk(config)
+-    ]);
+-
+-    if (!localApk) {
+-        if (!latestApkRelease) {
+-            throw new Error("Couldn't find an Android APK locally or remotely");
+-        } else {
+-            // No APK locally, but we can get one remotely:
+-
+-            console.log('Streaming remote APK directly');
+-            const apkUrl = latestApkRelease === 'unknown-latest'
+-                ? `https://github.com/${APK_REPO_RELEASE}/download/httptoolkit.apk`
+-                : latestApkRelease.url;
+-
+-            const apkResponse = await fetch(apkUrl);
+-            if (!apkResponse.ok) {
+-                throw new Error(`APK download failed with ${apkResponse.status}`);
+-            }
+-            const apkStream = stream.Readable.fromWeb(apkResponse.body as any);
+-
+-            // We buffer output into two passthrough streams, so both file & install
+-            // stream usage can be set up async independently. Buffers are 10MB, to
+-            // avoid issues buffering the whole APK even in super weird cases.
+-            const apkFileStream = new stream.PassThrough({ highWaterMark: 10485760 });
+-            apkStream.pipe(apkFileStream);
+-            const apkOutputStream = new stream.PassThrough({ highWaterMark: 10485760 });
+-            apkStream.pipe(apkOutputStream);
+-
+-            if (latestApkRelease !== 'unknown-latest') {
+-                updateLocalApk(latestApkRelease.version, apkFileStream, config).catch(logError);
+-            }
+-
+-            return apkOutputStream;
+-        }
+-    }
+-
+-    // So, we now have a local APK. Do we want to pull the remote one anyway?
+-
+-    if (
+-        !latestApkRelease || // Can't get releases at all
+-        latestApkRelease === 'unknown-latest' || // Can get, but don't know the version
+-        semver.gte(localApk.version, latestApkRelease.version, true) // Already up to date
+-    ) {
+-        console.log('Streaming local APK');
+-        // If we have an APK locally and it's up to date, or we can't tell, just use it
+-        return fs.createReadStream(localApk.path);
++    if (!(await fs.canAccess(apkPath))) {
++        throw new Error(`WireLens Android APK not found at ${apkPath}`);
+     }
+ 
+-    // We have a local APK & a remote APK, and the remote is newer.
+-    // Try to update it async, and use the local APK in the meantime.
+-    fetch(latestApkRelease.url).then((apkResponse) => {
+-        const apkStream = stream.Readable.fromWeb(apkResponse.body as any);
+-        return updateLocalApk(latestApkRelease.version, apkStream, config);
+-    }).catch(logError);
+-
+-    console.log('Streaming local APK, and updating it async');
+-    return fs.createReadStream(localApk.path);
+-}
+\ No newline at end of file
++    console.log(`Streaming bundled APK from ${apkPath}`);
++    return fs.createReadStream(apkPath);
++}
+diff --git a/src/interceptors/chromium-based-interceptors.ts b/src/interceptors/chromium-based-interceptors.ts
+index 0e319b6..eac0805 100644
+--- a/src/interceptors/chromium-based-interceptors.ts
++++ b/src/interceptors/chromium-based-interceptors.ts
+@@ -111,7 +111,7 @@ abstract class FreshChromiumBasedInterceptor implements Interceptor {
+                 ? 1
+                 : undefined
+         });
+-        await hideWarningServer.start('https://amiusing.httptoolkit.tech');
++        await hideWarningServer.start('https://amiusing.wirelens.internal');
+ 
+         const browserDetails = await getBrowserDetails(this.config.configPath, this.variantName);
+ 
+@@ -297,7 +297,7 @@ abstract class ExistingChromiumBasedInterceptor implements Interceptor {
+         }
+ 
+         const hideWarningServer = new HideWarningServer(this.config);
+-        await hideWarningServer.start('https://amiusing.httptoolkit.tech');
++        await hideWarningServer.start('https://amiusing.wirelens.internal');
+ 
+         const browserDetails = await getBrowserDetails(this.config.configPath, this.variantName);
+         const launchOptions = await getChromiumLaunchOptions(
+diff --git a/src/interceptors/docker/docker-build-injection.ts b/src/interceptors/docker/docker-build-injection.ts
+index 2713bad..83b30e9 100644
+--- a/src/interceptors/docker/docker-build-injection.ts
++++ b/src/interceptors/docker/docker-build-injection.ts
+@@ -197,7 +197,7 @@ const END_OF_STEP_REGEX = /^ ---\u003e [a-z0-9]+\n$/;
+ 
+ /**
+  * Takes a response stream of a Docker build (i.e. build output) and transforms it to simplify all the
+- * HTTP Toolkit interception noise down to a single clear line, and normalize the step count text
++ * WireLens interception noise down to a single clear line, and normalize the step count text
+  * to match.
+  */
+ export function getBuildOutputPipeline(extraDockerCommandCount: number): EventStream.MapStream {
+@@ -225,7 +225,7 @@ export function getBuildOutputPipeline(extraDockerCommandCount: number): EventSt
+                 // that's actually required to intercept everything.
+                 outputToHide = 'all';
+                 return JSON.stringify({
+-                    stream: " *** Enabling HTTP Toolkit interception ***\n"
++                    stream: " *** Enabling WireLens interception ***\n"
+                 });
+             } else if (outputToHide === 'all') {
+                 if (data.stream?.includes(`LABEL ${DOCKER_BUILD_LABEL}=`)) {
+diff --git a/src/interceptors/docker/docker-commands.ts b/src/interceptors/docker/docker-commands.ts
+index 4eef151..992fa4d 100644
+--- a/src/interceptors/docker/docker-commands.ts
++++ b/src/interceptors/docker/docker-commands.ts
+@@ -21,7 +21,7 @@ const HTTP_TOOLKIT_INJECTED_OVERRIDES_PATH = path.posix.join(HTTP_TOOLKIT_INJECT
+ const HTTP_TOOLKIT_INJECTED_CA_PATH = path.posix.join(HTTP_TOOLKIT_INJECTED_PATH, 'ca.pem');
+ 
+ /**
+- * Get the hostname that resolves to the host OS (i.e. generally: where HTTP Toolkit is running)
++ * Get the hostname that resolves to the host OS (i.e. generally: where WireLens is running)
+  * from inside containers.
+  *
+  * In Docker for Windows & Mac, host.docker.internal is supported automatically:
+diff --git a/src/interceptors/docker/docker-interception-services.ts b/src/interceptors/docker/docker-interception-services.ts
+index a1fa4bd..5f09156 100644
+--- a/src/interceptors/docker/docker-interception-services.ts
++++ b/src/interceptors/docker/docker-interception-services.ts
+@@ -156,7 +156,7 @@ const pendingDeactivations: {
+ 
+ // When a Docker container or the whole server shuts down, we do our best to delete
+ // every remaining intercepted image or container. None of these will be usable
+-// without us anyway, as they all depend on HTTP Toolkit for connectivity.
++// without us anyway, as they all depend on WireLens for connectivity.
+ export async function deleteAllInterceptedDockerData(proxyPort: number | 'all'): Promise<void> {
+     if (pendingDeactivations[proxyPort]) return pendingDeactivations[proxyPort];
+     if (!await isDockerAvailable()) return;
+diff --git a/src/interceptors/docker/docker-networking.ts b/src/interceptors/docker/docker-networking.ts
+index 4b5f62d..abc5152 100644
+--- a/src/interceptors/docker/docker-networking.ts
++++ b/src/interceptors/docker/docker-networking.ts
+@@ -78,7 +78,7 @@ const dockerNetworkMonitors: { [proxyPort: string]: DockerNetworkMonitor | undef
+  *
+  * This method has no effect (and no downside) if the monitor is already running, so it's
+  * expected that this will be called whenever a user interacts with Docker in a way related
+- * to HTTP Toolkit interception for this port. It's useful to call this often, because its
++ * to WireLens interception for this port. It's useful to call this often, because its
+  * dependent on the events stream connection from Docker that may be fragile and need resetting,
+  * in a way that other background services (like the proxy or tunnel container) are not.
+  *
+diff --git a/src/interceptors/docker/docker-proxy.ts b/src/interceptors/docker/docker-proxy.ts
+index 6c96bd6..e7e45f0 100644
+--- a/src/interceptors/docker/docker-proxy.ts
++++ b/src/interceptors/docker/docker-proxy.ts
+@@ -101,7 +101,7 @@ async function createDockerProxy(
+     // Forward all requests & responses to & from the real docker server:
+     const server = http.createServer(async (req, res) => {
+         if (!await isDockerAvailable()) {
+-            res.writeHead(504, "Docker not available").end("HTTP Toolkit could not connect to Docker");
++            res.writeHead(504, "Docker not available").end("WireLens could not connect to Docker");
+             return;
+         }
+ 
+@@ -138,7 +138,7 @@ async function createDockerProxy(
+ 
+             if (containerData && !isInterceptedContainer(containerData, proxyPort)) {
+                 res.writeHead(400).end(
+-                    "HTTP Toolkit cannot intercept startup of preexisting non-intercepted containers. " +
++                    "WireLens cannot intercept startup of preexisting non-intercepted containers. " +
+                     "The container must be recreated here first - try `docker run <image>` instead."
+                 );
+             }
+@@ -151,9 +151,9 @@ async function createDockerProxy(
+                 logError("Build interception failed due to unsupported 'remote' param");
+ 
+                 if (reqUrl.searchParams.get('remote') === 'client-session') {
+-                    res.end("HTTP Toolkit does not yet support BuildKit-powered builds");
++                    res.end("WireLens does not yet support BuildKit-powered builds");
+                 } else {
+-                    res.end("HTTP Toolkit does not support intercepting remote build sources");
++                    res.end("WireLens does not support intercepting remote build sources");
+                 }
+                 return;
+             }
+@@ -204,7 +204,7 @@ async function createDockerProxy(
+ 
+             if (reqPath.match(BUILD_IMAGE_MATCHER) && dockerRes.statusCode === 200) {
+                 // We transform the build output to replace the docker build interception steps with a cleaner
+-                // & simpler HTTP Toolkit interception message:
++                // & simpler WireLens interception message:
+                 dockerRes.pipe(getBuildOutputPipeline(await extraDockerCommandCount!)).pipe(res);
+             } else if (shouldRemapContainerData) {
+                 // We need to remap container data, to hook all docker-compose behaviour:
+@@ -247,7 +247,7 @@ async function createDockerProxy(
+         if (!await isDockerAvailable()) {
+             socket.end(
+                 "HTTP/1.1 504 Docker not available\r\n\r\n" +
+-                "HTTP Toolkit could not connect to Docker\r\n"
++                "WireLens could not connect to Docker\r\n"
+             );
+             return;
+         }
+diff --git a/src/interceptors/fresh-firefox.ts b/src/interceptors/fresh-firefox.ts
+index 9fca454..54f6f25 100644
+--- a/src/interceptors/fresh-firefox.ts
++++ b/src/interceptors/fresh-firefox.ts
+@@ -201,7 +201,7 @@ abstract class Firefox implements Interceptor {
+     async setupFirefoxProfile(profilePath: string) {
+         const messageServer = new MessageServer(
+             this.config,
+-            `HTTP Toolkit is preparing a Firefox profile, please wait...`
++            `WireLens is preparing a Firefox profile, please wait...`
+         );
+         await messageServer.start();
+ 
+@@ -239,7 +239,7 @@ abstract class Firefox implements Interceptor {
+                 '-d', `sql:${profilePath}`,
+                 '-t', 'C,,',
+                 '-i', this.config.https.certPath,
+-                '-n', 'HTTP Toolkit'
++                '-n', 'WireLens'
+             ],
+             certutil.options || {}
+         );
+@@ -291,7 +291,7 @@ abstract class Firefox implements Interceptor {
+             }, {});
+ 
+         const certCheckServer = new CertCheckServer(this.config);
+-        await certCheckServer.start("https://amiusing.httptoolkit.tech");
++        await certCheckServer.start("https://amiusing.wirelens.internal");
+ 
+         const browser = await this.startFirefox(profilePath, certCheckServer, proxyPort, existingPrefs);
+ 
+diff --git a/src/interceptors/terminal/terminal-scripts.ts b/src/interceptors/terminal/terminal-scripts.ts
+index 88237e4..ff83b1d 100644
+--- a/src/interceptors/terminal/terminal-scripts.ts
++++ b/src/interceptors/terminal/terminal-scripts.ts
+@@ -47,9 +47,9 @@ const END_CONFIG_SECTION = '# --httptoolkit-end--';
+ // Works in bash, zsh, dash, ksh, sh (not fish)
+ const SH_SHELL_PATH_CONFIG = `
+ ${START_CONFIG_SECTION}
+-# This section will be reset each time a HTTP Toolkit terminal is opened
++# This section will be reset each time a WireLens terminal is opened
+ if [ -n "$HTTP_TOOLKIT_ACTIVE" ]; then
+-    # When HTTP Toolkit is active, we inject various overrides into PATH
++    # When WireLens is active, we inject various overrides into PATH
+     export PATH="${POSIX_OVERRIDE_BIN_PATH}:$PATH"
+ 
+     if command -v winpty >/dev/null 2>&1; then
+@@ -61,9 +61,9 @@ fi
+ ${END_CONFIG_SECTION}`;
+ const FISH_SHELL_PATH_CONFIG = `
+ ${START_CONFIG_SECTION}
+-# This section will be reset each time a HTTP Toolkit terminal is opened
++# This section will be reset each time a WireLens terminal is opened
+ if [ -n "$HTTP_TOOLKIT_ACTIVE" ]
+-    # When HTTP Toolkit is active, we inject various overrides into PATH
++    # When WireLens is active, we inject various overrides into PATH
+     set -x PATH "${POSIX_OVERRIDE_BIN_PATH}" $PATH;
+ 
+     if command -v winpty >/dev/null 2>&1
+@@ -86,11 +86,11 @@ export const getBashShellScript = (callbackUrl: string, env: { [name: string]: s
+     fi
+ 
+     if command -v curl >/dev/null 2>&1; then
+-        # Let the HTTP Toolkit app know this ran successfully
++        # Let the WireLens app know this ran successfully
+         (curl --noproxy '*' -X POST "${callbackUrl}" >/dev/null 2>&1 &) &> /dev/null
+     fi
+ 
+-    echo 'HTTP Toolkit interception enabled'
++    echo 'WireLens interception enabled'
+ `;
+ 
+ // Build a Bash script, but first just translate the $PATH (which Git Bash expects to include its own
+@@ -117,11 +117,11 @@ export const getFishShellScript = (callbackUrl: string, env: { [name: string]: s
+     end
+ 
+     if command -v curl >/dev/null 2>&1
+-        # Let the HTTP Toolkit app know this ran successfully
++        # Let the WireLens app know this ran successfully
+         curl --noproxy '*' -X POST "${callbackUrl}" >/dev/null 2>&1 &
+     end
+ 
+-    echo 'HTTP Toolkit interception enabled'
++    echo 'WireLens interception enabled'
+ `;
+ 
+ export const getPowerShellScript = (callbackUrl: string, env: { [name: string]: string }) => `
+@@ -148,7 +148,7 @@ ${
+         $PSDefaultParameterValues.Remove("invoke-webrequest:proxy")
+         $PSDefaultParameterValues.Remove("invoke-webrequest:SkipCertificateCheck")
+ 
+-        Write-Host 'HTTP Toolkit interception disabled'
++        Write-Host 'WireLens interception disabled'
+     }
+ 
+     # We add a few special hooks just for Invoke-WebRequest.
+@@ -157,10 +157,10 @@ ${
+     # Then we disable cert checks completely - all traffic will go to us, we'll handle HTTPS upstream
+     $PSDefaultParameterValues["invoke-webrequest:SkipCertificateCheck"] = $True
+ 
+-    # Let the HTTP Toolkit app know this ran successfully
++    # Let the WireLens app know this ran successfully
+     Start-Job -ScriptBlock { Invoke-WebRequest "${callbackUrl}" -NoProxy -Method 'POST' } | out-null
+ 
+-    Write-Host "HTTP Toolkit interception enabled\`nTo stop intercepting type " -NoNewline
++    Write-Host "WireLens interception enabled\`nTo stop intercepting type " -NoNewline
+     Write-Host "Stop-Intercepting" -ForegroundColor Red
+ `;
+ 
+diff --git a/src/message-server.ts b/src/message-server.ts
+index 39c1598..aa2c19c 100644
+--- a/src/message-server.ts
++++ b/src/message-server.ts
+@@ -28,7 +28,7 @@ export class MessageServer {
+                     statusCode: 200,
+                     body: `
+                         <html>
+-                            <title>HTTP Toolkit</title>
++                            <title>WireLens</title>
+                             <meta charset="UTF-8" />
+                             <link href="http://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
+                             <style>

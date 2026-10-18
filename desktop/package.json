@@ -1,0 +1,187 @@
+{
+  "name": "wirelens-desktop",
+  "productName": "WireLens",
+  "version": "1.27.2",
+  "homepage": "https://github.com/wirelens/wirelens",
+  "private": true,
+  "description": "HTTP(S) debugging, development & testing tool (fork of HTTP Toolkit)",
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "server:setup": "tsx ./build-setup/setup-server.ts",
+    "build": "npm run build:src && npm run build:electron",
+    "build:src": "tsc",
+    "postbuild:src": "tsx ./build-setup/strip-preload-map.ts",
+    "build:electron": "npm run server:setup && electron-builder build --config ./build-setup/electron-builder.config.cjs",
+    "build:dir-only": "npm run server:setup && electron-builder --dir",
+    "start": "npm run server:setup && npm run start:app",
+    "start:dev": "tsx ./build-setup/skip-server.ts && cross-env HTK_DEV=true APP_URL='http://localhost:8080' npm run start:app",
+    "start:app": "tsc-watch --onSuccess \"electron .\"",
+    "test": "npm run server:setup && npm run build:src && playwright test"
+  },
+  "keywords": [],
+  "author": "WireLens contributors (based on HTTP Toolkit by Tim Perry)",
+  "license": "AGPL-3.0-or-later",
+  "config": {
+    "httptoolkit-server-version": "1.27.2"
+  },
+  "build": {
+    "appId": "dev.wirelens.desktop",
+    "extends": null,
+    "productName": "WireLens",
+    "directories": {
+      "buildResources": "build-resources"
+    },
+    "extraMetadata": {
+      "name": "wirelens",
+      "productName": "WireLens",
+      "author": "WireLens contributors"
+    },
+    "files": [
+      "**/*",
+      "build/**/*",
+      "!custom-typings",
+      "!certificates",
+      "!appveyor-tools",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ],
+    "extraResources": [
+      "httptoolkit-server/**/*",
+      "ui/**/*",
+      "wirelens-ctl{,.*}",
+      "wirelens-mcp{,.*}",
+      "NOTICE.md"
+    ],
+    "artifactName": "WireLens-${version}-${arch}.${ext}",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "src/icons/icon.icns",
+      "entitlements": "src/entitlements.plist",
+      "entitlementsInherit": "src/entitlements.plist",
+      "forceCodeSigning": false,
+      "notarize": false
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "artifactName": "WireLens-${version}-${os}-${arch}.${ext}",
+      "icon": "./src/icons/icon.ico"
+    },
+    "nsis": {
+      "installerIcon": "./src/icons/icon.ico",
+      "artifactName": "WireLens-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": true,
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "allowElevation": true
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "rpm",
+        "AppImage",
+        "zip"
+      ],
+      "artifactName": "WireLens-${version}-${os}-${arch}.${ext}",
+      "executableName": "wirelens",
+      "category": "Development",
+      "icon": "./src/icons/icon.svg",
+      "maintainer": "wirelens@localhost",
+      "desktop": {
+        "entry": {
+          "Name": "WireLens",
+          "Comment": "HTTP(S) debugging, development & testing tool",
+          "Categories": "Development;Network",
+          "StartupNotify": true
+        }
+      }
+    },
+    "deb": {
+      "artifactName": "WireLens-${version}-${arch}.${ext}",
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
+    },
+    "rpm": {
+      "artifactName": "WireLens-${version}-${arch}.${ext}",
+      "afterRemove": "scripts/post-uninstall-rpm.sh"
+    },
+    "appImage": {
+      "artifactName": "WireLens-${version}-${arch}.${ext}"
+    },
+    "publish": null,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "loadBrowserProcessSpecificV8Snapshot": false,
+      "grantFileProtocolExtraPrivileges": false,
+      "resetAdHocDarwinSignature": false
+    }
+  },
+  "dependencies": {
+    "@httptoolkit/util": "^0.1.8",
+    "@sentry/electron": "^7.16.0",
+    "electron-context-menu": "^3.5.0",
+    "electron-store": "^11.0.1",
+    "electron-window-state": "^5.0.3",
+    "get-port": "^7.2.0",
+    "os-proxy-config": "^1.1.1",
+    "semver": "^7.2.1",
+    "tslib": "^2.8.1",
+    "yargs": "^15.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/lodash": "^4.14.149",
+    "@types/semver": "^7.3.4",
+    "@types/targz": "^1.0.0",
+    "@types/yargs": "^15.0.3",
+    "cross-env": "^7.0.3",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.15.3",
+    "lodash": "^4.18.1",
+    "postject": "1.0.0-alpha.6",
+    "targz": "^1.0.1",
+    "tsc-watch": "^4.2.9",
+    "tsx": "^4.22.4",
+    "typescript": "~5.9"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "allowScripts": {
+    "electron@39.8.10": true,
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.28.1": true,
+    "registry-js@1.16.1": true
+  }
+}

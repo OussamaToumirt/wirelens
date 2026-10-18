@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build & staging output
+*.log
+desktop/build/
+desktop/dist/
+desktop/httptoolkit-server/
+desktop/ui/
+desktop/NOTICE.md
+ui/dist/
+server/lib/
+server/bundle/
+server/build/
+android/.gradle/
+android/build/
+android/app/build/
+android/.kotlin/
+
+# Local machine config & signing secrets - never commit these
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore
+.env
+
+# Editors & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

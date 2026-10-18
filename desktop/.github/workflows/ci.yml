@@ -1,0 +1,227 @@
+name: CI
+on:
+  push:
+      branches-ignore:
+        - 'dependabot/**'
+      tags:
+        - '**'
+  pull_request:
+jobs:
+  build:
+    name: Build & test
+    strategy:
+      matrix:
+        include:
+          - platform: linux
+            arch: x64
+            os: "ubuntu-22.04"
+          - platform: linux
+            arch: arm64
+            os: "ubuntu-24.04-arm"
+          - platform: windows
+            arch: x64
+            os: "windows-2022"
+          - platform: mac
+            arch: x64
+            os: "macos-15-intel"
+          - platform: mac
+            arch: arm64
+            os: "macos-14"
+    runs-on: ${{ matrix.os }}
+    environment: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'production' || null }}
+    permissions:
+      contents: read
+      id-token: write # OIDC with Azure for Windows signing
+    env:
+      IS_RELEASE: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+          check-latest: true
+          cache: 'npm'
+
+      # Due to https://github.com/electron-userland/electron-builder/issues/3901
+      # Electron-Builder fails to produce deb packages on arm64 without this:
+      - name: Install system FPM to fix ARM64 Linux builds
+        if: matrix.platform == 'linux' && matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
+
+      - run: npm ci
+
+      # The API key in APPLE_API_KEY is a PEM cert that must be read from disk:
+      - name: Prepare Apple API key
+        if: env.IS_RELEASE == 'true' && startsWith(matrix.os, 'macos-')
+        run: echo "$APPLE_API_KEY" > ./apple-api-key.p8
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+
+      - name: Azure login for Windows signing
+        if: env.IS_RELEASE == 'true' && matrix.platform == 'windows'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Run signed build
+        if: env.IS_RELEASE == 'true'
+        run: npm run build
+        env:
+          ENABLE_SIGNING: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # For Mac notarization:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_KEY: ./apple-api-key.p8
+          # For Mac signing:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # For Windows signing via Azure Artifact Signing:
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          # Workaround - see FPM install step above
+          USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
+
+      - name: Run unsigned build
+        if: env.IS_RELEASE != 'true'
+        run: npm run build
+        env:
+          ENABLE_SIGNING: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
+
+      # Attempt to fix flaky tests due to CI disk perf by warming the disk up
+      - name: Warm page cache before smoke tests
+        if: runner.os == 'Linux'
+        run: |
+          for d in node_modules httptoolkit-server build; do
+            [ -e "$d" ] && find "$d" -type f -print0 2>/dev/null | xargs -0 cat > /dev/null 2>&1 || true
+          done
+        shell: bash
+
+      - name: Run smoke tests
+        run: |
+          # We manually start ADB, so the tests don't (because if they do, they fail
+          # to exit, due to the hanging process)
+          "$ANDROID_HOME/platform-tools/adb" start-server 2>/dev/null || true
+
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            xvfb-run --auto-servernum npm test
+          else
+            npm test
+          fi
+        shell: bash
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
+        with:
+          name: HttpToolkit-linux-${{ matrix.arch }}-deb
+          path: dist/HttpToolkit-*.deb
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
+        with:
+          name: HttpToolkit-linux-${{ matrix.arch }}-rpm
+          path: dist/HttpToolkit-*.rpm
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
+        with:
+          name: HttpToolkit-linux-${{ matrix.arch }}-AppImage
+          path: dist/HttpToolkit-*.AppImage
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
+        with:
+          name: HttpToolkit-linux-${{ matrix.arch }}-zip
+          path: dist/HttpToolkit-*linux*.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'windows'
+        with:
+          name: HttpToolkit-windows-${{ matrix.arch }}-exe
+          path: dist/HttpToolkit-*.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'windows'
+        with:
+          name: HttpToolkit-windows-${{ matrix.arch }}-zip
+          path: dist/HttpToolkit-*win*.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'mac'
+        with:
+          name: HttpToolkit-mac-${{ matrix.arch }}-dmg
+          path: dist/HttpToolkit-*.dmg
+          if-no-files-found: error
+  publish:
+    name: Publish a release
+    runs-on: "ubuntu-22.04"
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Get all distributables
+        uses: actions/download-artifact@v7
+
+      - name: Normalize arch names to x64 or arm64
+        run: |
+          find . -maxdepth 2 -type f -name "*" | while read -r file; do
+            filename=$(basename "$file")
+            newname=$(echo "$filename" | sed -e 's/amd64/x64/g' -e 's/x86_64/x64/g' -e 's/aarch64/arm64/g')
+            if [ "$filename" != "$newname" ]; then
+              mv -v "$file" "$newname"
+            fi
+          done
+
+      - name: Publish to GitHub Releases
+        uses: svenstaro/upload-release-action@v2
+        with:
+          tag: ${{ github.ref }}
+          prerelease: true
+          file: ./**/*
+          file_glob: true
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+  submit-winget:
+    name: Submit to WinGet repository
+    needs: publish
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    # wingetcreate only runs on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Sync winget-pkgs fork with upstream
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+        run: |
+          $forkOwner = gh api user --jq '.login'
+          gh repo sync "$forkOwner/winget-pkgs" --source microsoft/winget-pkgs
+
+      - name: Submit package using wingetcreate
+        # winget-create will read the following environment variable to access the GitHub token needed for submitting a PR
+        # See https://aka.ms/winget-create-token
+        env:
+          WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+        run: |
+          $packageVersion = "${{ github.ref }}" -replace 'refs/tags/v', ''
+          $installerUrl = "https://github.com/httptoolkit/httptoolkit-desktop/releases/download/v$packageVersion/HttpToolkit-$packageVersion.exe"
+
+          # Update package using wingetcreate
+          curl.exe -JLO https://aka.ms/wingetcreate/latest
+          .\wingetcreate.exe update HTTPToolKit.HTTPToolKit `
+            --version $packageVersion `
+            --urls "$installerUrl|x64" `
+            --submit

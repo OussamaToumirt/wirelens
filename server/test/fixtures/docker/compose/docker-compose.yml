@@ -1,0 +1,11 @@
+version: '3.3'
+
+services:
+  service-a:
+    build: .
+    environment:
+      - EXTRA_TARGET=http://service-b:9876
+  service-b:
+    build: .
+    environment:
+      - EXTRA_TARGET=http://service-a:9876
