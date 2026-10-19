@@ -2,7 +2,7 @@
   "name": "wirelens-desktop",
   "productName": "WireLens",
   "version": "1.27.2",
-  "homepage": "https://github.com/wirelens/wirelens",
+  "homepage": "https://github.com/OussamaToumirt/wirelens",
   "private": true,
   "description": "HTTP(S) debugging, development & testing tool (fork of HTTP Toolkit)",
   "type": "module",
