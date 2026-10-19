@@ -48,7 +48,7 @@ export const ExportAsHarButton = inject('accountStore')(observer((props: {
             const harContent = JSON.stringify(
                 await generateHar(props.events)
             );
-            const filename = `HTTPToolkit_${
+            const filename = `WireLens_${
                 dateFns.format(Date.now(), 'YYYY-MM-DD_HH-mm')
             }.har`;
 

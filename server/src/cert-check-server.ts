@@ -149,7 +149,7 @@ export class CertCheckServer {
                                 This browser does not trust the WireLens certificate authority, so HTTPS traffic can't be intercepted.
                             </p><p>
                                 Closing the browser and starting it again from WireLens will often resolve this. If not,
-                                please file a bug at <strong>github.com/httptoolkit/httptoolkit</strong>.
+                                please file a bug at <strong>github.com/OussamaToumirt/wirelens</strong>.
                             </p>
                     `)
                 };

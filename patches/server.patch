@@ -92,7 +92,7 @@ index 95bb595..3de805f 100644
                      }
                  }));
 diff --git a/src/cert-check-server.ts b/src/cert-check-server.ts
-index 299fe89..f3573ae 100644
+index 299fe89..15df0db 100644
 --- a/src/cert-check-server.ts
 +++ b/src/cert-check-server.ts
 @@ -7,7 +7,7 @@ import { EPHEMERAL_PORT_RANGE } from './constants';
@@ -104,7 +104,7 @@ index 299fe89..f3573ae 100644
              <meta charset="UTF-8" />
              <link href="http://fonts.googleapis.com/css?family=Lato" rel="stylesheet" />
              <style>
-@@ -146,9 +146,9 @@ export class CertCheckServer {
+@@ -146,10 +146,10 @@ export class CertCheckServer {
                              }
                          `, ``, `
                              <p>
@@ -112,12 +112,14 @@ index 299fe89..f3573ae 100644
 +                                This browser does not trust the WireLens certificate authority, so HTTPS traffic can't be intercepted.
                              </p><p>
 -                                Closing the browser and starting it again from HTTP Toolkit will often resolve this. If not,
+-                                please file a bug at <strong>github.com/httptoolkit/httptoolkit</strong>.
 +                                Closing the browser and starting it again from WireLens will often resolve this. If not,
-                                 please file a bug at <strong>github.com/httptoolkit/httptoolkit</strong>.
++                                please file a bug at <strong>github.com/OussamaToumirt/wirelens</strong>.
                              </p>
                      `)
+                 };
 diff --git a/src/commands/ctl.ts b/src/commands/ctl.ts
-index 9b8fc02..e7d5cb1 100644
+index 9b8fc02..e85ccc6 100644
 --- a/src/commands/ctl.ts
 +++ b/src/commands/ctl.ts
 @@ -156,11 +156,11 @@ function generateGeneralHelp(operations: HtkOperation[]): string {
@@ -127,13 +129,41 @@ index 9b8fc02..e7d5cb1 100644
 -        'HTTP Toolkit Remote Control',
 +        'WireLens Remote Control',
          '',
-         'Usage: httptoolkit-ctl <command> [options]',
+-        'Usage: httptoolkit-ctl <command> [options]',
++        'Usage: wirelens-ctl <command> [options]',
          '',
 -        `  ${'status'.padEnd(27)}Check if HTTP Toolkit is running`,
 +        `  ${'status'.padEnd(27)}Check if WireLens is running`,
          `  ${'help'.padEnd(27)}Show this help message`,
          ''
      ];
+@@ -186,7 +186,7 @@ function generateGeneralHelp(operations: HtkOperation[]): string {
+     }
+ 
+     lines.push('');
+-    lines.push("Run 'httptoolkit-ctl <command> --help' for details.");
++    lines.push("Run 'wirelens-ctl <command> --help' for details.");
+     return lines.join('\n');
+ }
+ 
+@@ -203,7 +203,7 @@ function generateOperationHelp(op: HtkOperation): string {
+     const lines = [
+         op.description,
+         '',
+-        `Usage: httptoolkit-ctl ${cmd} ${usageSuffix}`
++        `Usage: wirelens-ctl ${cmd} ${usageSuffix}`
+     ];
+ 
+     if (schema?.properties && Object.keys(schema.properties).length > 0) {
+@@ -322,7 +322,7 @@ async function runCtl(args: string[]): Promise<void> {
+ 
+     if (!matchedOp) {
+         const cmd = positionals.join(' ');
+-        process.stderr.write(`Error: Unknown command '${cmd}'. Run 'httptoolkit-ctl help'.\n`);
++        process.stderr.write(`Error: Unknown command '${cmd}'. Run 'wirelens-ctl help'.\n`);
+         process.exit(1);
+         return;
+     }
 @@ -354,7 +354,7 @@ async function runCtl(args: string[]): Promise<void> {
  }
  
@@ -144,7 +174,7 @@ index 9b8fc02..e7d5cb1 100644
      static strict = false
  
 diff --git a/src/commands/mcp.ts b/src/commands/mcp.ts
-index 26c45e9..ba58bc4 100644
+index 26c45e9..61cce28 100644
 --- a/src/commands/mcp.ts
 +++ b/src/commands/mcp.ts
 @@ -144,16 +144,16 @@ function getBridgeFailureInstruction(error: any): string {
@@ -168,7 +198,13 @@ index 26c45e9..ba58bc4 100644
  }
  
  const POLL_INTERVAL_MS = 5_000;
-@@ -167,8 +167,8 @@ const OPEN_TIMEOUT_MS = 10_000;
+@@ -162,13 +162,13 @@ const LAUNCH_POLL_MS = 500;
+ const OPEN_TIMEOUT_MS = 10_000;
+ 
+ // Default install paths per platform. First match wins. The wrapper scripts
+-// (httptoolkit-mcp / .cmd) set HTK_DESKTOP_EXE explicitly, so the env var
++// (wirelens-mcp / .cmd) set HTK_DESKTOP_EXE explicitly, so the env var
+ // check below handles the normal "bundled with HTK" case.
  function getDefaultHtkExeCandidates(): string[] {
      if (process.platform === 'darwin') {
          return [
@@ -277,6 +313,15 @@ index 26c45e9..ba58bc4 100644
                      }]
                  };
              }
+@@ -444,7 +444,7 @@ async function runMcpServer(): Promise<void> {
+                         tools: { listChanged: true }
+                     },
+                     serverInfo: {
+-                        name: 'httptoolkit',
++                        name: 'wirelens',
+                         version: SERVER_VERSION
+                     }
+                 });
 @@ -537,7 +537,7 @@ async function runMcpServer(): Promise<void> {
  }
  
@@ -309,44 +354,396 @@ index c47f5ed..89a0233 100644
  
      }
 diff --git a/src/constants.ts b/src/constants.ts
-index 8d295cc..48e50c3 100644
+index 8d295cc..9cefe46 100644
 --- a/src/constants.ts
 +++ b/src/constants.ts
-@@ -8,11 +8,10 @@ export const APP_ROOT = path.join(__dirname, '..');
- 
- export const ALLOWED_ORIGINS = IS_PROD_BUILD
-     ? [
+@@ -1,41 +1,40 @@
+-import * as path from 'path';
+-
+-export const IS_PROD_BUILD = !!process.env.HTTPTOOLKIT_SERVER_BINPATH;
+-
+-// Notably, for this file, this is the same when either bundled or unbundled.
+-// That's not true for most other files! Everything should use this instead of __dirname:
+-export const APP_ROOT = path.join(__dirname, '..');
+-
+-export const ALLOWED_ORIGINS = IS_PROD_BUILD
+-    ? [
 -        // Prod builds only allow HTTPS app.httptoolkit.tech usage. This
 -        // ensures that no other sites/apps can communicate with your server
 -        // whilst you have the app open. If they could (requires an HTTP mitm),
 -        // they would be able to start proxies & interceptors.
 -        /^https:\/\/app\.httptoolkit\.tech$/
+-    ]
+-    : [
+-        // Dev builds can use the main site, or local sites, even if those
+-        // use HTTP. Note that HTTP here could technically open you to the risk
+-        // above, but it'd require a DNS MitM too (to stop local.httptoolkit.tech
+-        // resolving to localhost and never hitting the network).
+-        /^https?:\/\/localhost(:\d+)?$/,
+-        /^https?:\/\/127.0.0.\d+(:\d+)?$/,
+-        /^http:\/\/local\.httptoolkit\.tech(:\d+)?$/,
+-        /^https:\/\/app\.httptoolkit\.tech$/,
+-    ];
+-
+-export const MOCKTTP_ALLOWED_ORIGINS = [
+-    ...ALLOWED_ORIGINS,
+-    // The Chromium webextension is allowed to make requests from the
+-    // browser directly into the Mockttp admin API (but not into our API server).
+-    'chrome-extension://oeehdgfohghfelggpifolochpnkdmpog'
+-];
+-
+-// The range of ports that should be used by invisible ephemeral services, such as Firefox's
+-// certificate check server and Chrome's "hide warning" server. These ports are extra likely
+-// not to conflict with normal user usage, and are specifically designated by the IANA for
+-// use for dynamic ports.
+-export const EPHEMERAL_PORT_RANGE = { startPort: 49152, endPort: 65535 } as const;
+-
++import * as path from 'path';
++
++export const IS_PROD_BUILD = !!process.env.HTTPTOOLKIT_SERVER_BINPATH;
++
++// Notably, for this file, this is the same when either bundled or unbundled.
++// That's not true for most other files! Everything should use this instead of __dirname:
++export const APP_ROOT = path.join(__dirname, '..');
++
++export const ALLOWED_ORIGINS = IS_PROD_BUILD
++    ? [
 +        // WireLens serves its UI from the desktop app on a loopback port, so prod
 +        // builds only accept that origin. Every request still needs the per-launch
 +        // auth token, so other local pages can't drive the server either.
 +        /^http:\/\/127\.0\.0\.1:\d+$/
-     ]
-     : [
-         // Dev builds can use the main site, or local sites, even if those
++    ]
++    : [
++        // Dev builds can use the main site, or local sites, even if those
++        // use HTTP. Note that HTTP here could technically open you to the risk
++        // above, but it'd require a DNS MitM too (to stop local.httptoolkit.tech
++        // resolving to localhost and never hitting the network).
++        /^https?:\/\/localhost(:\d+)?$/,
++        /^https?:\/\/127.0.0.\d+(:\d+)?$/,
++        /^http:\/\/local\.httptoolkit\.tech(:\d+)?$/,
++        /^https:\/\/app\.httptoolkit\.tech$/,
++    ];
++
++export const MOCKTTP_ALLOWED_ORIGINS = [
++    ...ALLOWED_ORIGINS,
++    // The Chromium webextension is allowed to make requests from the
++    // browser directly into the Mockttp admin API (but not into our API server).
++    'chrome-extension://oeehdgfohghfelggpifolochpnkdmpog'
++];
++
++// The range of ports that should be used by invisible ephemeral services, such as Firefox's
++// certificate check server and Chrome's "hide warning" server. These ports are extra likely
++// not to conflict with normal user usage, and are specifically designated by the IANA for
++// use for dynamic ports.
++export const EPHEMERAL_PORT_RANGE = { startPort: 49152, endPort: 65535 } as const;
++
+ export const SERVER_VERSION = require('../package.json').version as string;
+\ No newline at end of file
 diff --git a/src/error-tracking.ts b/src/error-tracking.ts
-index 09bea15..7520f04 100644
+index 09bea15..bc4bb38 100644
 --- a/src/error-tracking.ts
 +++ b/src/error-tracking.ts
-@@ -17,12 +17,8 @@ export function initErrorTracking() {
-     // Note that we disable all error reporting in CI envs, both our own & others. They
-     // tend to be weird configurations that aren't representative so this isn't useful.
- 
+@@ -1,152 +1,148 @@
+-import * as path from 'path';
+-import { randomUUID } from 'crypto';
+-import * as Sentry from '@sentry/node';
+-import { ErrorLike } from '@httptoolkit/util';
+-
+-import { IS_PROD_BUILD } from './constants';
+-
+-let sentryInitialized = false;
+-
+-export function initErrorTracking() {
+-    const packageJson = require('../package.json');
+-
+-    let { SENTRY_DSN, CI } = process.env;
+-
+-    const shouldBeEnabled = IS_PROD_BUILD && !CI;
+-
+-    // Note that we disable all error reporting in CI envs, both our own & others. They
+-    // tend to be weird configurations that aren't representative so this isn't useful.
+-
 -    if (!SENTRY_DSN && shouldBeEnabled) {
 -        // If we're a built binary, use the standard DSN automatically
 -        SENTRY_DSN = 'https://5838a5520ad44602ae46793727e49ef5@sentry.io/1371158';
 -    }
 -
 -    if (SENTRY_DSN) {
+-        Sentry.init({
+-            dsn: SENTRY_DSN,
+-            release: packageJson.version,
+-            sendDefaultPii: false,
+-            tracePropagationTargets: [],
+-            integrations: [
+-                Sentry.rewriteFramesIntegration({
+-                    // We're one dir down: either /bundle, or /src
+-                    root: process.platform === 'win32'
+-                        // Root must always be POSIX format, so we transform it on Windows:
+-                        ? path.posix.join(
+-                            __dirname
+-                                .replace(/^[A-Z]:/, '') // remove Windows-style prefix
+-                                .replace(/\\/g, '/'), // replace all `\\` instances with `/`
+-                            '..'
+-                        )
+-                        :  path.join(__dirname, '..')
+-                })
+-            ],
+-            beforeBreadcrumb(breadcrumb, hint) {
+-                if (breadcrumb.category === 'http') {
+-                    // Almost all HTTP requests sent by the server are actually forwarded HTTP from
+-                    // the proxy, so could be very sensitive. We need to ensure errors don't leak data.
+-
+-                    // Remove all but the host from the breadcrumb data. The host is fairly safe & often
+-                    // useful for context, but the path & query could easily contain sensitive secrets.
+-                    if (breadcrumb.data && breadcrumb.data.url) {
+-                        const url = breadcrumb.data.url as string;
+-                        const hostIndex = url.indexOf('://') + 3;
+-                        const pathIndex = url.indexOf('/', hostIndex);
+-                        if (pathIndex !== -1) {
+-                            breadcrumb.data.url = url.slice(0, pathIndex);
+-                        }
+-                    }
+-
+-                    if (hint) {
+-                        // Make sure we don't collect the full HTTP data in hints either.
+-                        delete hint.request;
+-                        delete hint.response;
+-                    }
+-                }
+-                return breadcrumb;
+-            },
+-            beforeSend(event, hint) {
+-                if (event.message) {
+-                    event.message = simplifyErrorMessages(event.message);
+-                }
+-
+-                if (event.exception && event.exception.values) {
+-                    event.exception.values.forEach((value) => {
+-                        if (!value.value) return;
+-                        value.value = simplifyErrorMessages(value.value);
+-                    });
+-                }
+-
+-                return event;
+-            }
+-        });
+-
+-        Sentry.setTag('platform', process.platform);
+-
+-        // We use a random id to distinguish between many errors in one session vs
+-        // one error in many sessions. This isn't persisted and can't be used to
+-        // identify anybody between sessions.
+-        const randomId = randomUUID();
+-        Sentry.setUser({ id: randomId, username: `anon-${randomId}` });
+-
+-        // Include breadcrumbs for subprocess spawning, to trace interceptor startup details:
+-        const child_process = require('child_process');
+-        const rawSpawn = child_process.spawn;
+-        (child_process as any).spawn = function (command: any, args?: any, options?: { [key: string]: string }) {
+-            const sanitizedOptions = { ...options,
+-                env: Object.entries((options && options.env) || {})
+-                    .map(([key, value]) => {
+-                        // Remove all actual env values from this reporting; only included our changed values.
+-                        const realValue = process.env[key];
+-                        if (value === realValue) return undefined;
+-                        else if (realValue) return [key, value.replace(realValue, '[...]')];
+-                        else return [key, value];
+-                    })
+-                    .filter((entry) => entry !== undefined)
+-            };
+-
+-            addBreadcrumb('Spawning process', { data: { command, args, options: sanitizedOptions } });
+-            return rawSpawn.apply(this, arguments as any);
+-        };
+-
+-        sentryInitialized = true;
+-    }
+-}
+-
+-const simplifyErrorMessages = (input: string): string =>
+-    input
+-    // Strip any usernames that end up appearing within error values.
+-    // This helps to dedupe error reports, and it's good for privacy too
+-    .replace(/\/home\/[^\/]+\//g, '/home/<username>/')
+-    .replace(/\/Users\/[^\/]+\//g, '/Users/<username>/')
+-    .replace(/(\w):\\Users\\[^\\]+\\/gi, '$1:\\Users\\<username>\\')
+-    // Dedupe temp filenames in errors (from terminal script setup)
+-    .replace(/([a-zA-Z]+)\d{12,}\.temp/g, '$1<number>.temp');
+-
+-export function addBreadcrumb(message: string, data: Sentry.Breadcrumb) {
+-    Sentry.addBreadcrumb(Object.assign({ message }, data));
+-}
+-
+-export function logError(error: Error | string | unknown, extra?: { cause?: ErrorLike }): undefined | Promise<void> {
+-    console.warn(error);
+-    if (!sentryInitialized) return;
+-
+-    // If we pass a cause, simplify/anonymize the cause message too if present:
+-    if (extra?.cause) {
+-        extra.cause = {
+-            ...extra.cause,
+-            message: extra.cause.message ? simplifyErrorMessages(extra.cause.message) : undefined
+-        };
+-    }
+-
+-    if (typeof error === 'string') {
+-        Sentry.captureMessage(error, { extra });
+-    } else {
+-        Sentry.captureException(error, { extra });
+-    }
+-
+-    return Sentry.flush(500).then((sentSuccessfully) => {
+-        if (sentSuccessfully === false) console.log('Error reporting timed out');
+-    });
++import * as path from 'path';
++import { randomUUID } from 'crypto';
++import * as Sentry from '@sentry/node';
++import { ErrorLike } from '@httptoolkit/util';
++
++import { IS_PROD_BUILD } from './constants';
++
++let sentryInitialized = false;
++
++export function initErrorTracking() {
++    const packageJson = require('../package.json');
++
++    let { SENTRY_DSN, CI } = process.env;
++
++    const shouldBeEnabled = IS_PROD_BUILD && !CI;
++
++    // Note that we disable all error reporting in CI envs, both our own & others. They
++    // tend to be weird configurations that aren't representative so this isn't useful.
++
 +    // WireLens has no default error reporting endpoint: only report if SENTRY_DSN is set explicitly.
 +    if (SENTRY_DSN && shouldBeEnabled) {
-         Sentry.init({
-             dsn: SENTRY_DSN,
-             release: packageJson.version,
++        Sentry.init({
++            dsn: SENTRY_DSN,
++            release: packageJson.version,
++            sendDefaultPii: false,
++            tracePropagationTargets: [],
++            integrations: [
++                Sentry.rewriteFramesIntegration({
++                    // We're one dir down: either /bundle, or /src
++                    root: process.platform === 'win32'
++                        // Root must always be POSIX format, so we transform it on Windows:
++                        ? path.posix.join(
++                            __dirname
++                                .replace(/^[A-Z]:/, '') // remove Windows-style prefix
++                                .replace(/\\/g, '/'), // replace all `\\` instances with `/`
++                            '..'
++                        )
++                        :  path.join(__dirname, '..')
++                })
++            ],
++            beforeBreadcrumb(breadcrumb, hint) {
++                if (breadcrumb.category === 'http') {
++                    // Almost all HTTP requests sent by the server are actually forwarded HTTP from
++                    // the proxy, so could be very sensitive. We need to ensure errors don't leak data.
++
++                    // Remove all but the host from the breadcrumb data. The host is fairly safe & often
++                    // useful for context, but the path & query could easily contain sensitive secrets.
++                    if (breadcrumb.data && breadcrumb.data.url) {
++                        const url = breadcrumb.data.url as string;
++                        const hostIndex = url.indexOf('://') + 3;
++                        const pathIndex = url.indexOf('/', hostIndex);
++                        if (pathIndex !== -1) {
++                            breadcrumb.data.url = url.slice(0, pathIndex);
++                        }
++                    }
++
++                    if (hint) {
++                        // Make sure we don't collect the full HTTP data in hints either.
++                        delete hint.request;
++                        delete hint.response;
++                    }
++                }
++                return breadcrumb;
++            },
++            beforeSend(event, hint) {
++                if (event.message) {
++                    event.message = simplifyErrorMessages(event.message);
++                }
++
++                if (event.exception && event.exception.values) {
++                    event.exception.values.forEach((value) => {
++                        if (!value.value) return;
++                        value.value = simplifyErrorMessages(value.value);
++                    });
++                }
++
++                return event;
++            }
++        });
++
++        Sentry.setTag('platform', process.platform);
++
++        // We use a random id to distinguish between many errors in one session vs
++        // one error in many sessions. This isn't persisted and can't be used to
++        // identify anybody between sessions.
++        const randomId = randomUUID();
++        Sentry.setUser({ id: randomId, username: `anon-${randomId}` });
++
++        // Include breadcrumbs for subprocess spawning, to trace interceptor startup details:
++        const child_process = require('child_process');
++        const rawSpawn = child_process.spawn;
++        (child_process as any).spawn = function (command: any, args?: any, options?: { [key: string]: string }) {
++            const sanitizedOptions = { ...options,
++                env: Object.entries((options && options.env) || {})
++                    .map(([key, value]) => {
++                        // Remove all actual env values from this reporting; only included our changed values.
++                        const realValue = process.env[key];
++                        if (value === realValue) return undefined;
++                        else if (realValue) return [key, value.replace(realValue, '[...]')];
++                        else return [key, value];
++                    })
++                    .filter((entry) => entry !== undefined)
++            };
++
++            addBreadcrumb('Spawning process', { data: { command, args, options: sanitizedOptions } });
++            return rawSpawn.apply(this, arguments as any);
++        };
++
++        sentryInitialized = true;
++    }
++}
++
++const simplifyErrorMessages = (input: string): string =>
++    input
++    // Strip any usernames that end up appearing within error values.
++    // This helps to dedupe error reports, and it's good for privacy too
++    .replace(/\/home\/[^\/]+\//g, '/home/<username>/')
++    .replace(/\/Users\/[^\/]+\//g, '/Users/<username>/')
++    .replace(/(\w):\\Users\\[^\\]+\\/gi, '$1:\\Users\\<username>\\')
++    // Dedupe temp filenames in errors (from terminal script setup)
++    .replace(/([a-zA-Z]+)\d{12,}\.temp/g, '$1<number>.temp');
++
++export function addBreadcrumb(message: string, data: Sentry.Breadcrumb) {
++    Sentry.addBreadcrumb(Object.assign({ message }, data));
++}
++
++export function logError(error: Error | string | unknown, extra?: { cause?: ErrorLike }): undefined | Promise<void> {
++    console.warn(error);
++    if (!sentryInitialized) return;
++
++    // If we pass a cause, simplify/anonymize the cause message too if present:
++    if (extra?.cause) {
++        extra.cause = {
++            ...extra.cause,
++            message: extra.cause.message ? simplifyErrorMessages(extra.cause.message) : undefined
++        };
++    }
++
++    if (typeof error === 'string') {
++        Sentry.captureMessage(error, { extra });
++    } else {
++        Sentry.captureException(error, { extra });
++    }
++
++    return Sentry.flush(500).then((sentSuccessfully) => {
++        if (sentSuccessfully === false) console.log('Error reporting timed out');
++    });
+ }
+\ No newline at end of file
 diff --git a/src/hide-warning-server.ts b/src/hide-warning-server.ts
 index 7488a03..ba002e2 100644
 --- a/src/hide-warning-server.ts

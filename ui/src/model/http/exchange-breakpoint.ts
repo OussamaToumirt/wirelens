@@ -41,7 +41,7 @@ function getBody(message: MockttpBreakpointedRequest | MockttpBreakpointedRespon
     ).catch((e) => {
         console.log("Breakpoint body decoding failed", e);
         const error = dedent`
-            HTTP TOOLKIT ERROR: Could not decode body, \
+            WIRELENS ERROR: Could not decode body, \
             check content-encoding
         `;
         return {

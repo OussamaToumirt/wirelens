@@ -207,7 +207,7 @@ export const MultiSelectionSummaryPane = inject('accountStore', 'uiStore')(obser
                 const harContent = JSON.stringify(
                     await generateHar(selectedEvents, { bodySizeLimit: Infinity })
                 );
-                const filename = `HTTPToolkit_${
+                const filename = `WireLens_${
                     dateFns.format(Date.now(), 'YYYY-MM-DD_HH-mm')
                 }.har`;
                 saveFile(filename, 'application/har+json;charset=utf-8', harContent);

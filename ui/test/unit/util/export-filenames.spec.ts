@@ -133,7 +133,7 @@ describe('export-filenames', () => {
 
         it('contains date and time', () => {
             const name = buildArchiveFilename(new Date(2026, 4, 17, 12, 34));
-            expect(name).to.equal('HTTPToolkit_Export_2026-05-17_12-34.zip');
+            expect(name).to.equal('WireLens_Export_2026-05-17_12-34.zip');
         });
 
     });

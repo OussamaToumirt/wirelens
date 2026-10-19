@@ -280,17 +280,17 @@ export const HttpErrorHeader = (p: {
                 Because this method is unrecognized, WireLens doesn't know how it should
                 be handled, and cannot safely forward it on elsewhere. If you think this
                 method should be supported, please <a
-                    href='https://github.com/httptoolkit/httptoolkit/issues/new'
+                    href='https://github.com/OussamaToumirt/wirelens/issues/new'
                 >
                     get in touch
                 </a>.
             </HeaderText>
         : p.type === 'invalid-http-version'
             ? <HeaderText>
-                The client may be using a newer or experimental HTTP version that HTTP
-                Toolkit doesn't yet support. If you think this version should be supported,
+                The client may be using a newer or experimental HTTP version that
+                WireLens doesn't yet support. If you think this version should be supported,
                 please <a
-                    href='https://github.com/httptoolkit/httptoolkit/issues/new'
+                    href='https://github.com/OussamaToumirt/wirelens/issues/new'
                 >
                     get in touch
                 </a>.

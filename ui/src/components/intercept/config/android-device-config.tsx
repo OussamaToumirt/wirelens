@@ -154,7 +154,7 @@ class AndroidConfig extends React.Component<{
                 alert(
                     "Cannot activate Android interception as no network addresses could be detected." +
                     "\n\n" +
-                    "Please open an issue at github.com/httptoolkit/httptoolkit"
+                    "Please open an issue at github.com/OussamaToumirt/wirelens"
                 );
                 logError("Android QR activation failed - no network addresses");
                 this.props.closeSelf();

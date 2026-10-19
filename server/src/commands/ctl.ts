@@ -158,7 +158,7 @@ function generateGeneralHelp(operations: HtkOperation[]): string {
     const lines = [
         'WireLens Remote Control',
         '',
-        'Usage: httptoolkit-ctl <command> [options]',
+        'Usage: wirelens-ctl <command> [options]',
         '',
         `  ${'status'.padEnd(27)}Check if WireLens is running`,
         `  ${'help'.padEnd(27)}Show this help message`,
@@ -186,7 +186,7 @@ function generateGeneralHelp(operations: HtkOperation[]): string {
     }
 
     lines.push('');
-    lines.push("Run 'httptoolkit-ctl <command> --help' for details.");
+    lines.push("Run 'wirelens-ctl <command> --help' for details.");
     return lines.join('\n');
 }
 
@@ -203,7 +203,7 @@ function generateOperationHelp(op: HtkOperation): string {
     const lines = [
         op.description,
         '',
-        `Usage: httptoolkit-ctl ${cmd} ${usageSuffix}`
+        `Usage: wirelens-ctl ${cmd} ${usageSuffix}`
     ];
 
     if (schema?.properties && Object.keys(schema.properties).length > 0) {
@@ -322,7 +322,7 @@ async function runCtl(args: string[]): Promise<void> {
 
     if (!matchedOp) {
         const cmd = positionals.join(' ');
-        process.stderr.write(`Error: Unknown command '${cmd}'. Run 'httptoolkit-ctl help'.\n`);
+        process.stderr.write(`Error: Unknown command '${cmd}'. Run 'wirelens-ctl help'.\n`);
         process.exit(1);
         return;
     }

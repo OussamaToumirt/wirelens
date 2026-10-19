@@ -28,10 +28,10 @@ index 8bfbeca..9e54ba0 100644
        that brought you this page, or start browsing elsewhere to collect more data.
      </p>
 diff --git a/src/components/account/plan-picker.tsx b/src/components/account/plan-picker.tsx
-index 4ebd623..9c34684 100644
+index 4ebd623..ca5cd12 100644
 --- a/src/components/account/plan-picker.tsx
 +++ b/src/components/account/plan-picker.tsx
-@@ -314,7 +314,7 @@ export class PlanPicker extends React.Component<PlanPickerProps> {
+@@ -314,11 +314,11 @@ export class PlanPicker extends React.Component<PlanPickerProps> {
          if (!isPricingAvailable) {
              return <SpinnerModal onClose={closePicker} aria-label='Loading plans'>
                  <p>
@@ -40,6 +40,11 @@ index 4ebd623..9c34684 100644
                  </p>
                  <p>
                      Having problems? Open an issue <a
+-                        href="https://github.com/httptoolkit/httptoolkit/issues/new/choose"
++                        href="https://github.com/OussamaToumirt/wirelens/issues/new"
+                     >on GitHub</a> or email <strong>billing@httptoolkit.com</strong> to ask for help.
+                 </p>
+                 <Icon
 @@ -352,7 +352,7 @@ export class PlanPicker extends React.Component<PlanPickerProps> {
                      <p>
                          By subscribing to a paid plan, you accept <Nowrap>
@@ -120,11 +125,32 @@ index 0fbf3e3..43f5aa0 100644
          ] as SidebarItem[];
      }
  
+diff --git a/src/components/disconnected-warning.tsx b/src/components/disconnected-warning.tsx
+index 04ebfd7..ad6e919 100644
+--- a/src/components/disconnected-warning.tsx
++++ b/src/components/disconnected-warning.tsx
+@@ -63,7 +63,7 @@ export const DisconnectedWarning = inject('proxyStore')(observer((props: {
+             <p>
+                 In the meantime, some features may be unavailable. If this doesn't resolve
+                 quickly, or happens frequently, please <a
+-                    href="https://github.com/httptoolkit/httptoolkit/issues/new?template=bug.yml"
++                    href="https://github.com/OussamaToumirt/wirelens/issues/new"
+                     target="_blank"
+                     rel="noreferrer"
+                 >report a bug</a> and share as much information as possible to help
 diff --git a/src/components/error-boundary.tsx b/src/components/error-boundary.tsx
-index 3235c5c..ed83c71 100644
+index 3235c5c..a32bbe0 100644
 --- a/src/components/error-boundary.tsx
 +++ b/src/components/error-boundary.tsx
-@@ -107,7 +107,7 @@ export class ErrorBoundary extends React.Component<{
+@@ -100,14 +100,14 @@ export class ErrorBoundary extends React.Component<{
+                 </ErrorOutput> }
+                 <ButtonContainer>
+                     <ButtonLink href={
+-                        `https://github.com/httptoolkit/httptoolkit/issues/new?template=bug.yml&title=[UI Crash]%3A+${
++                        `https://github.com/OussamaToumirt/wirelens/issues/new?title=[UI Crash]%3A+${
+                             this.error.message || ''
+                         }`
+                     }>
                          Tell us what happened
                      </ButtonLink>
                      <Button onClick={() => window.location.reload()}>
@@ -134,7 +160,7 @@ index 3235c5c..ed83c71 100644
                  </ButtonContainer>
              </ErrorOverlay>
 diff --git a/src/components/intercept/config/android-device-config.tsx b/src/components/intercept/config/android-device-config.tsx
-index 1b18dce..62c71b3 100644
+index 1b18dce..af85d7f 100644
 --- a/src/components/intercept/config/android-device-config.tsx
 +++ b/src/components/intercept/config/android-device-config.tsx
 @@ -77,7 +77,7 @@ function urlSafeBase64(content: string) {
@@ -155,6 +181,15 @@ index 1b18dce..62c71b3 100644
              )
          ],
          completionChecker: new completionCheckers.Always(),
+@@ -154,7 +154,7 @@ class AndroidConfig extends React.Component<{
+                 alert(
+                     "Cannot activate Android interception as no network addresses could be detected." +
+                     "\n\n" +
+-                    "Please open an issue at github.com/httptoolkit/httptoolkit"
++                    "Please open an issue at github.com/OussamaToumirt/wirelens"
+                 );
+                 logError("Android QR activation failed - no network addresses");
+                 this.props.closeSelf();
 @@ -190,7 +190,7 @@ class AndroidConfig extends React.Component<{
          };
  
@@ -199,9 +234,18 @@ index 6861362..70f27b7 100644
              </p>
              {
 diff --git a/src/components/intercept/config/manual-intercept-config.tsx b/src/components/intercept/config/manual-intercept-config.tsx
-index af5a308..7bd732f 100644
+index af5a308..784abb7 100644
 --- a/src/components/intercept/config/manual-intercept-config.tsx
 +++ b/src/components/intercept/config/manual-intercept-config.tsx
+@@ -78,7 +78,7 @@ const ExportCertificateButton = styled((p: { certContent: string, className?: st
+     <PillButton
+         className={p.className}
+         onClick={() => saveFile(
+-            'http-toolkit-ca-certificate.crt',
++            'wirelens-ca-certificate.crt',
+             'application/x-x509-ca-cert',
+             p.certContent
+         )}
 @@ -114,7 +114,7 @@ const ManualInterceptConfig = inject('proxyStore')(
                  <InstructionsStep>
                      <p>To intercept traffic you need to:</p>
@@ -211,6 +255,15 @@ index af5a308..7bd732f 100644
                          <li><strong>Trust the certificate authority</strong></li>
                      </ol>
                      <p>
+@@ -124,7 +124,7 @@ const ManualInterceptConfig = inject('proxyStore')(
+                     </p>
+                     <p>
+                         Want your client to be supported automatically? <Nowrap>
+-                            <a href='https://github.com/httptoolkit/httptoolkit/issues/new'>
++                            <a href='https://github.com/OussamaToumirt/wirelens/issues/new'>
+                                 Send some feedback
+                             </a>
+                         </Nowrap>.
 @@ -132,7 +132,7 @@ const ManualInterceptConfig = inject('proxyStore')(
                  </InstructionsStep>
  
@@ -230,28 +283,50 @@ index af5a308..7bd732f 100644
                      </p>
                      { certContent // Not defined in some older server versions
 diff --git a/src/components/mcp/mcp-modal.tsx b/src/components/mcp/mcp-modal.tsx
-index c549ac3..f00efa1 100644
+index c549ac3..2a65f5b 100644
 --- a/src/components/mcp/mcp-modal.tsx
 +++ b/src/components/mcp/mcp-modal.tsx
-@@ -54,7 +54,7 @@ const INTEGRATIONS: IntegrationConfig[] = [
+@@ -27,7 +27,7 @@ interface IntegrationConfig {
+ const jsonClientConfig = (mcpCommand: { command: string; args: string[] }) =>
+     JSON.stringify({
+         mcpServers: {
+-            'http-toolkit': {
++            'wirelens': {
+                 command: mcpCommand.command,
+                 ...(mcpCommand.args.length > 0 ? { args: mcpCommand.args } : {})
+             }
+@@ -37,7 +37,7 @@ const jsonClientConfig = (mcpCommand: { command: string; args: string[] }) =>
+ const vscodeClientConfig = (mcpCommand: { command: string; args: string[] }) =>
+     JSON.stringify({
+         servers: {
+-            'http-toolkit': {
++            'wirelens': {
+                 type: 'stdio',
+                 command: mcpCommand.command,
+                 ...(mcpCommand.args.length > 0 ? { args: mcpCommand.args } : {})
+@@ -54,9 +54,9 @@ const INTEGRATIONS: IntegrationConfig[] = [
      {
          id: 'claude-code',
          name: 'Claude Code',
 -        description: 'Register HTTP Toolkit as an MCP server in Claude Code by running this command in your terminal:',
 +        description: 'Register WireLens as an MCP server in Claude Code by running this command in your terminal:',
          buildSnippet: ({ command, args }) =>
-             `claude mcp add http-toolkit -- ${[command, ...args].map(shellEscape).join(' ')}`,
+-            `claude mcp add http-toolkit -- ${[command, ...args].map(shellEscape).join(' ')}`,
++            `claude mcp add wirelens -- ${[command, ...args].map(shellEscape).join(' ')}`,
          docsUrl: 'https://docs.claude.com/en/docs/claude-code/mcp'
-@@ -69,7 +69,7 @@ const INTEGRATIONS: IntegrationConfig[] = [
+     },
+     {
+@@ -69,29 +69,29 @@ const INTEGRATIONS: IntegrationConfig[] = [
      {
          id: 'codex',
          name: 'Codex',
 -        description: 'Register HTTP Toolkit as an MCP server in Codex by running this command in your terminal:',
 +        description: 'Register WireLens as an MCP server in Codex by running this command in your terminal:',
          buildSnippet: ({ command, args }) =>
-             `codex mcp add http-toolkit -- ${[command, ...args].map(shellEscape).join(' ')}`,
+-            `codex mcp add http-toolkit -- ${[command, ...args].map(shellEscape).join(' ')}`,
++            `codex mcp add wirelens -- ${[command, ...args].map(shellEscape).join(' ')}`,
          docsUrl: 'https://developers.openai.com/codex/mcp/'
-@@ -77,21 +77,21 @@ const INTEGRATIONS: IntegrationConfig[] = [
+     },
      {
          id: 'vscode',
          name: 'VS Code',
@@ -303,6 +378,19 @@ index c549ac3..f00efa1 100644
                          { !this.props.accountStore.user.isPaidUser() && <>
                              {' '}Free accounts have per-session call limits — see{' '}
                              <a href='https://httptoolkit.com/pricing/' target='_blank' rel='noreferrer'>
+diff --git a/src/components/modify/modify-page.tsx b/src/components/modify/modify-page.tsx
+index b98bf2a..c410793 100644
+--- a/src/components/modify/modify-page.tsx
++++ b/src/components/modify/modify-page.tsx
+@@ -343,7 +343,7 @@ class ModifyPage extends React.Component<ModifyPageProps> {
+             serializeRules(this.props.rulesStore.draftRules)
+         );
+ 
+-        const filename = `HTTPToolkit_${
++        const filename = `WireLens_${
+             dateFns.format(Date.now(), 'YYYY-MM-DD_HH-mm')
+         }.htkrules`;
+ 
 diff --git a/src/components/modify/step-selection.tsx b/src/components/modify/step-selection.tsx
 index a0e8b43..377f9e2 100644
 --- a/src/components/modify/step-selection.tsx
@@ -599,103 +687,695 @@ index b27754b..86d34a2 100644
              <p>
                  Instantly understand this request with inline documentation for the
 diff --git a/src/components/view/http/http-error-header.tsx b/src/components/view/http/http-error-header.tsx
-index c6e9ddc..b2c384e 100644
+index c6e9ddc..80594c6 100644
 --- a/src/components/view/http/http-error-header.tsx
 +++ b/src/components/view/http/http-error-header.tsx
-@@ -78,7 +78,7 @@ export const HttpErrorHeader = (p: {
-                         : p.type === 'client-unparseable'
-                             ? 'could not be parsed'
-                         : unreachableCheck(p.type)
+@@ -1,335 +1,335 @@
+-import * as React from 'react';
+-import * as semver from 'semver';
+-
+-import { WarningIcon } from '../../../icons';
+-
+-import {
+-    desktopVersion,
+-    versionSatisfies,
+-    DESKTOP_HEADER_LIMIT_CONFIGURABLE
+-} from '../../../services/service-versions';
+-
+-import { unreachableCheck } from '../../../util/error';
+-
+-import {
+-    ErrorType,
+-    isClientBug,
+-    isInitialRequestError,
+-    isMockable,
+-    isWhitelistable,
+-    wasNotForwarded,
+-    wasResponseIssue,
+-    wasTimeout
+-} from '../../../model/http/error-types';
+-
+-import { clickOnEnter } from '../../component-utils';
+-import {
+-    HeaderCard,
+-    HeaderText,
+-    HeaderButton
+-} from '../header-card';
+-
+-export const HttpErrorHeader = (p: {
+-    isPaidUser: boolean,
+-    type: ErrorType,
+-    getPro: (source: string) => void,
+-    navigate: (path: string) => void,
+-    createRuleFromRequest: () => void,
+-    ignoreError: () => void
+-}) => {
+-    const advancedHeaderOverflowSupported =
+-        desktopVersion.state === 'fulfilled' &&
+-        semver.valid(desktopVersion.value as string) &&
+-        versionSatisfies(
+-            desktopVersion.value as string,
+-            DESKTOP_HEADER_LIMIT_CONFIGURABLE
+-        );
+-
+-    // We don't bother explaining errors we triggered ourselves (breakpoint or
+-    // close/reset rule aborts).
+-    if (p.type === 'rule-abort') return;
+-
+-    return <HeaderCard>
+-        <HeaderText>
+-            <WarningIcon /> {
+-                isInitialRequestError(p.type)
+-                    ? <strong>This request could not be handled</strong>
+-                : wasNotForwarded(p.type)
+-                    ? <strong>This request was not forwarded successfully</strong>
+-                : // Forwarded but failed later, or unknown:
+-                    <strong>This exchange was not completed successfully</strong>
+-            } <WarningIcon />
+-        </HeaderText>
+-
+-        <HeaderText>
+-            { isInitialRequestError(p.type)
+-                ? <>
+-                    The client's request {
+-                        p.type === 'invalid-method'
+-                            ? 'used an unsupported HTTP method'
+-                        : p.type === 'invalid-http-version'
+-                            ? 'used an unsupported HTTP version'
+-                        : p.type === 'invalid-headers'
+-                            ? 'included an invalid or unparseable header'
+-                        : p.type === 'client-unparseable-url'
+-                            ? 'included an unparseable URL'
+-                        : p.type === 'header-overflow'
+-                            ? 'headers were too large to be processed'
+-                        : p.type === 'client-unparseable'
+-                            ? 'could not be parsed'
+-                        : unreachableCheck(p.type)
 -                    }, so HTTP Toolkit did not handle this request.
-+                    }, so WireLens did not handle this request.
-                 </>
-             : wasNotForwarded(p.type)
-                 ? <>
-@@ -100,7 +100,7 @@ export const HttpErrorHeader = (p: {
-                         : p.type === 'connection-refused'
-                             ? 'refused the connection'
-                         : unreachableCheck(p.type)
+-                </>
+-            : wasNotForwarded(p.type)
+-                ? <>
+-                    The upstream server {
+-                        p.type === 'wrong-host'
+-                            ? 'responded with an HTTPS certificate for the wrong hostname'
+-                        : p.type === 'expired'
+-                            ? 'has an expired HTTPS certificate'
+-                        : p.type === 'not-yet-valid'
+-                            ? 'has an HTTPS certificate with a start date in the future'
+-                        : p.type === 'untrusted'
+-                            ? 'has an untrusted HTTPS certificate'
+-                        : p.type === 'tls-error'
+-                            ? 'could not complete a TLS handshake'
+-                        : p.type === 'host-unreachable'
+-                            ? 'was not reachable on your network connection'
+-                        : p.type === 'host-not-found' || p.type === 'dns-error'
+-                            ? 'hostname could not be found'
+-                        : p.type === 'connection-refused'
+-                            ? 'refused the connection'
+-                        : unreachableCheck(p.type)
 -                    }, so HTTP Toolkit didn't forward the request.
-+                    }, so WireLens didn't forward the request.
-                 </>
-             : wasTimeout(p.type)
-                 ? <>
-@@ -125,12 +125,12 @@ export const HttpErrorHeader = (p: {
-                         : p.type === 'server-unparseable'
-                             ? 'the response from the server was unparseable'
-                         : unreachableCheck(p.type)
+-                </>
+-            : wasTimeout(p.type)
+-                ? <>
+-                    The request timed out {
+-                        p.type === 'client-timeout'
+-                            ? 'waiting for the client to send the complete request'
+-                        : p.type === 'server-timeout'
+-                            ? 'waiting for a response from the server'
+-                        : unreachableCheck(p.type)
+-                    }
+-                </>
+-            : p.type === 'client-abort'
+-                ? <>
+-                    The client unexpectedly disconnected during the request, so
+-                    the response could not be completed.
+-                </>
+-            : wasResponseIssue(p.type)
+-                ? <>
+-                    The upstream request failed because {
+-                        p.type === 'connection-reset'
+-                            ? 'the connection to the server was reset'
+-                        : p.type === 'server-unparseable'
+-                            ? 'the response from the server was unparseable'
+-                        : unreachableCheck(p.type)
 -                    }, so HTTP Toolkit could not return a response to the client.
-+                    }, so WireLens could not return a response to the client.
-                 </>
-             : p.type === 'unknown'
-                 ? <>
-                     The request failed because of an unknown error,
+-                </>
+-            : p.type === 'unknown'
+-                ? <>
+-                    The request failed because of an unknown error,
 -                    so HTTP Toolkit could not return a response.
-+                    so WireLens could not return a response.
-                 </>
-             : unreachableCheck(p.type)
-         }
-@@ -141,7 +141,7 @@ export const HttpErrorHeader = (p: {
-                 <HeaderText>
-                     This could be caused by the server not supporting modern ciphers or
-                     TLS versions, expecting a client certificate that wasn't provided,
+-                </>
+-            : unreachableCheck(p.type)
+-        }
+-        </HeaderText>
+-
+-        { p.type === 'tls-error'
+-            ? <>
+-                <HeaderText>
+-                    This could be caused by the server not supporting modern ciphers or
+-                    TLS versions, expecting a client certificate that wasn't provided,
 -                    or TLS configuration issues in either the server or HTTP Toolkit.
-+                    or TLS configuration issues in either the server or WireLens.
-                 </HeaderText>
-                 <HeaderText>
-                     { p.isPaidUser
-@@ -244,13 +244,13 @@ export const HttpErrorHeader = (p: {
-             </HeaderText>
-         : isClientBug(p.type)
-             ? <HeaderText>
+-                </HeaderText>
+-                <HeaderText>
+-                    { p.isPaidUser
+-                        ? <>
+-                            From the Settings page you can configure client certificates, or
+-                            whitelist this host to relax security requirements and allow
+-                            self-signed certificates, which may resolve some TLS issues.
+-                        </>
+-                        : <>
+-                            Pro users can relax HTTPS requirements for configured hosts to
+-                            accept older TLS configurations and self-signed/invalid certificates, and
+-                            configure per-host client certificates for authentication.
+-                        </>
+-                    }
+-                </HeaderText>
+-            </>
+-        : p.type === 'host-not-found'
+-            ? <>
+-                <HeaderText>
+-                    This typically means the host doesn't exist, although it
+-                    could be an issue with your DNS or network configuration.
+-                </HeaderText>
+-                <HeaderText>
+-                    You can define rules to handle requests like this from the
+-                    Modify page, to return fake data even for servers and hostnames
+-                    that don't exist.
+-                </HeaderText>
+-            </>
+-        : p.type === 'host-unreachable'
+-            ? <>
+-                <HeaderText>
+-                    This is typically an issue with your network connection or the
+-                    host's DNS records.
+-                </HeaderText>
+-                <HeaderText>
+-                    You can define rules to handle requests like this from the
+-                    Modify page, to return fake data even for servers and hostnames
+-                    that aren't accessible.
+-                </HeaderText>
+-            </>
+-        : p.type === 'dns-error'
+-            ? <>
+-                <HeaderText>
+-                    The DNS server hit an unknown error looking up this hostname.
+-                    This is likely due to a issue in your DNS configuration or network
+-                    connectivity, and may just be a temporary issue.
+-                </HeaderText>
+-                <HeaderText>
+-                    You can define rules to handle requests like this from the
+-                    Modify page, to return fake data even for servers and hostnames
+-                    that don't exist or aren't accessible.
+-                </HeaderText>
+-            </>
+-        : p.type === 'untrusted'
+-            ? <HeaderText>
+-                By default unrecognized certificate authorities (CAs) are only accepted for localhost servers, but {
+-                    p.isPaidUser
+-                        ? 'additional CAs can be trusted from the Settings page.'
+-                        : 'Pro users can trust additional CAs or disable HTTPS validation for a host entirely.'
+-                }
+-            </HeaderText>
+-        : isWhitelistable(p.type)
+-            ? <HeaderText>
+-                By default this is only allowed for localhost servers, but {
+-                    p.isPaidUser
+-                        ? 'other hosts can be added to the whitelist from the Settings page.'
+-                        : 'Pro users can whitelist other custom hosts.'
+-                }
+-            </HeaderText>
+-        : p.type === 'connection-refused'
+-            ? <HeaderText>
+-                This typically means the server isn't running on the port you're using, though
+-                it is possible this is an intermittent connection issue. You can either try
+-                again, or create a rule for requests like this to avoid sending them upstream at all.
+-            </HeaderText>
+-        : p.type === 'connection-reset'
+-            ? <HeaderText>
+-                This could be due to a connection issue, or an issue with the server.
+-                This may be an intermittent issue that will be solved by retrying the request, or
+-                you can create a rule for requests like this to avoid sending them upstream at all.
+-            </HeaderText>
+-        : p.type === 'client-abort'
+-            ? <HeaderText>
+-                This could be due to connection issues, problems within the client, or that
+-                the client simply no longer wanted to receive the response and closed the
+-                connection intentionally.
+-            </HeaderText>
+-        : p.type === 'client-timeout'
+-            ? <HeaderText>
+-                This could be due to connection issues, problems within the client, or delays
+-                generating the complete body of the request. This might be resolved by retrying
+-                the request, or sending a simpler request with a smaller or easier to generate body.
+-            </HeaderText>
+-        : p.type === 'server-timeout'
+-            ? <HeaderText>
+-                This could be due to connection issues, problems within the server, or issues
+-                with handling this request specifically. This might be resolved by retrying
+-                the request, or you can create a rule for requests like this to avoid sending
+-                them upstream at all.
+-            </HeaderText>
+-        : isClientBug(p.type)
+-            ? <HeaderText>
 -                This means the client sent HTTP Toolkit some fundamentally invalid data that does
-+                This means the client sent WireLens some fundamentally invalid data that does
-                 not follow the HTTP spec. That suggests either a major bug in the client, or that
-                 they're not sending HTTP at all.
-             </HeaderText>
-         : p.type === 'server-unparseable'
-             ? <HeaderText>
+-                not follow the HTTP spec. That suggests either a major bug in the client, or that
+-                they're not sending HTTP at all.
+-            </HeaderText>
+-        : p.type === 'server-unparseable'
+-            ? <HeaderText>
 -                This means the server sent HTTP Toolkit some fundamentally invalid data that does
-+                This means the server sent WireLens some fundamentally invalid data that does
-                 not follow the HTTP spec. That suggests either a major bug in the server, or that
-                 they're not sending HTTP at all.
-             </HeaderText>
-@@ -261,12 +261,12 @@ export const HttpErrorHeader = (p: {
-                         This means the request included more than 100KB of headers. The HTTP specification
-                         doesn't set a max length, but most servers will refuse to process anything longer
-                         than 8KB. This is likely an issue with your client, but if necessary you can increase
+-                not follow the HTTP spec. That suggests either a major bug in the server, or that
+-                they're not sending HTTP at all.
+-            </HeaderText>
+-        : p.type === 'header-overflow'
+-            ? <HeaderText>
+-                { desktopVersion.value && advancedHeaderOverflowSupported
+-                    ? <>
+-                        This means the request included more than 100KB of headers. The HTTP specification
+-                        doesn't set a max length, but most servers will refuse to process anything longer
+-                        than 8KB. This is likely an issue with your client, but if necessary you can increase
 -                        the HTTP Toolkit limit by setting <code>max-http-header-size</code> using the <code>HTTPTOOLKIT_NODE_OPTIONS</code> environment variable.
-+                        the WireLens limit by setting <code>max-http-header-size</code> using the <code>HTTPTOOLKIT_NODE_OPTIONS</code> environment variable.
-                     </>
-                 : desktopVersion.value // Old desktop:
-                     ? <>
+-                    </>
+-                : desktopVersion.value // Old desktop:
+-                    ? <>
 -                        In more recent HTTP Toolkit versions the built-in limit has been increased, so please
 -                        update HTTP Toolkit to handle requests like these.
+-                    </>
+-                : // Non-desktop use:
+-                    <>
+-                        The HTTP specification doesn't set a max length for HTTP headers, but most
+-                        servers will refuse to process anything longer than 8KB.
+-                    </>
+-                }
+-            </HeaderText>
+-        : p.type === 'invalid-method'
+-            ? <HeaderText>
+-                Because this method is unrecognized, HTTP Toolkit doesn't know how it should
+-                be handled, and cannot safely forward it on elsewhere. If you think this
+-                method should be supported, please <a
+-                    href='https://github.com/httptoolkit/httptoolkit/issues/new'
+-                >
+-                    get in touch
+-                </a>.
+-            </HeaderText>
+-        : p.type === 'invalid-http-version'
+-            ? <HeaderText>
+-                The client may be using a newer or experimental HTTP version that HTTP
+-                Toolkit doesn't yet support. If you think this version should be supported,
+-                please <a
+-                    href='https://github.com/httptoolkit/httptoolkit/issues/new'
+-                >
+-                    get in touch
+-                </a>.
+-            </HeaderText>
+-        : p.type === 'unknown'
+-            ? <HeaderText>
+-                It's not clear what's gone wrong here, but for some reason HTTP Toolkit
+-                couldn't successfully and/or securely complete this request.
+-                This might be an intermittent issue, and may be resolved by retrying
+-                the request.
+-            </HeaderText>
+-        : unreachableCheck(p.type)}
+-
+-        { isInitialRequestError(p.type) && <HeaderText>
+-            The data shown below is a best guess from the data that was available
+-            and parseable, and may be incomplete or inaccurate.
+-        </HeaderText> }
+-
+-        <HeaderButton onClick={p.ignoreError} onKeyPress={clickOnEnter}>
+-            Ignore
+-        </HeaderButton>
+-
+-        { isMockable(p.type)
+-            ? <HeaderButton onClick={p.createRuleFromRequest} onKeyPress={clickOnEnter}>
+-                Create a rule
+-            </HeaderButton>
+-        : isWhitelistable(p.type)
+-            ? (p.isPaidUser
+-                ? <HeaderButton onClick={() => p.navigate('/settings')} onKeyPress={clickOnEnter}>
+-                    Go to Settings
+-                </HeaderButton>
+-                : <HeaderButton
+-                    onClick={() => p.getPro(`error-header-${p.type}`)}
+-                    onKeyPress={clickOnEnter}
+-                >
+-                    Get Pro
+-                </HeaderButton>
+-            )
+-        : null }
+-
+-    </HeaderCard>;
++import * as React from 'react';
++import * as semver from 'semver';
++
++import { WarningIcon } from '../../../icons';
++
++import {
++    desktopVersion,
++    versionSatisfies,
++    DESKTOP_HEADER_LIMIT_CONFIGURABLE
++} from '../../../services/service-versions';
++
++import { unreachableCheck } from '../../../util/error';
++
++import {
++    ErrorType,
++    isClientBug,
++    isInitialRequestError,
++    isMockable,
++    isWhitelistable,
++    wasNotForwarded,
++    wasResponseIssue,
++    wasTimeout
++} from '../../../model/http/error-types';
++
++import { clickOnEnter } from '../../component-utils';
++import {
++    HeaderCard,
++    HeaderText,
++    HeaderButton
++} from '../header-card';
++
++export const HttpErrorHeader = (p: {
++    isPaidUser: boolean,
++    type: ErrorType,
++    getPro: (source: string) => void,
++    navigate: (path: string) => void,
++    createRuleFromRequest: () => void,
++    ignoreError: () => void
++}) => {
++    const advancedHeaderOverflowSupported =
++        desktopVersion.state === 'fulfilled' &&
++        semver.valid(desktopVersion.value as string) &&
++        versionSatisfies(
++            desktopVersion.value as string,
++            DESKTOP_HEADER_LIMIT_CONFIGURABLE
++        );
++
++    // We don't bother explaining errors we triggered ourselves (breakpoint or
++    // close/reset rule aborts).
++    if (p.type === 'rule-abort') return;
++
++    return <HeaderCard>
++        <HeaderText>
++            <WarningIcon /> {
++                isInitialRequestError(p.type)
++                    ? <strong>This request could not be handled</strong>
++                : wasNotForwarded(p.type)
++                    ? <strong>This request was not forwarded successfully</strong>
++                : // Forwarded but failed later, or unknown:
++                    <strong>This exchange was not completed successfully</strong>
++            } <WarningIcon />
++        </HeaderText>
++
++        <HeaderText>
++            { isInitialRequestError(p.type)
++                ? <>
++                    The client's request {
++                        p.type === 'invalid-method'
++                            ? 'used an unsupported HTTP method'
++                        : p.type === 'invalid-http-version'
++                            ? 'used an unsupported HTTP version'
++                        : p.type === 'invalid-headers'
++                            ? 'included an invalid or unparseable header'
++                        : p.type === 'client-unparseable-url'
++                            ? 'included an unparseable URL'
++                        : p.type === 'header-overflow'
++                            ? 'headers were too large to be processed'
++                        : p.type === 'client-unparseable'
++                            ? 'could not be parsed'
++                        : unreachableCheck(p.type)
++                    }, so WireLens did not handle this request.
++                </>
++            : wasNotForwarded(p.type)
++                ? <>
++                    The upstream server {
++                        p.type === 'wrong-host'
++                            ? 'responded with an HTTPS certificate for the wrong hostname'
++                        : p.type === 'expired'
++                            ? 'has an expired HTTPS certificate'
++                        : p.type === 'not-yet-valid'
++                            ? 'has an HTTPS certificate with a start date in the future'
++                        : p.type === 'untrusted'
++                            ? 'has an untrusted HTTPS certificate'
++                        : p.type === 'tls-error'
++                            ? 'could not complete a TLS handshake'
++                        : p.type === 'host-unreachable'
++                            ? 'was not reachable on your network connection'
++                        : p.type === 'host-not-found' || p.type === 'dns-error'
++                            ? 'hostname could not be found'
++                        : p.type === 'connection-refused'
++                            ? 'refused the connection'
++                        : unreachableCheck(p.type)
++                    }, so WireLens didn't forward the request.
++                </>
++            : wasTimeout(p.type)
++                ? <>
++                    The request timed out {
++                        p.type === 'client-timeout'
++                            ? 'waiting for the client to send the complete request'
++                        : p.type === 'server-timeout'
++                            ? 'waiting for a response from the server'
++                        : unreachableCheck(p.type)
++                    }
++                </>
++            : p.type === 'client-abort'
++                ? <>
++                    The client unexpectedly disconnected during the request, so
++                    the response could not be completed.
++                </>
++            : wasResponseIssue(p.type)
++                ? <>
++                    The upstream request failed because {
++                        p.type === 'connection-reset'
++                            ? 'the connection to the server was reset'
++                        : p.type === 'server-unparseable'
++                            ? 'the response from the server was unparseable'
++                        : unreachableCheck(p.type)
++                    }, so WireLens could not return a response to the client.
++                </>
++            : p.type === 'unknown'
++                ? <>
++                    The request failed because of an unknown error,
++                    so WireLens could not return a response.
++                </>
++            : unreachableCheck(p.type)
++        }
++        </HeaderText>
++
++        { p.type === 'tls-error'
++            ? <>
++                <HeaderText>
++                    This could be caused by the server not supporting modern ciphers or
++                    TLS versions, expecting a client certificate that wasn't provided,
++                    or TLS configuration issues in either the server or WireLens.
++                </HeaderText>
++                <HeaderText>
++                    { p.isPaidUser
++                        ? <>
++                            From the Settings page you can configure client certificates, or
++                            whitelist this host to relax security requirements and allow
++                            self-signed certificates, which may resolve some TLS issues.
++                        </>
++                        : <>
++                            Pro users can relax HTTPS requirements for configured hosts to
++                            accept older TLS configurations and self-signed/invalid certificates, and
++                            configure per-host client certificates for authentication.
++                        </>
++                    }
++                </HeaderText>
++            </>
++        : p.type === 'host-not-found'
++            ? <>
++                <HeaderText>
++                    This typically means the host doesn't exist, although it
++                    could be an issue with your DNS or network configuration.
++                </HeaderText>
++                <HeaderText>
++                    You can define rules to handle requests like this from the
++                    Modify page, to return fake data even for servers and hostnames
++                    that don't exist.
++                </HeaderText>
++            </>
++        : p.type === 'host-unreachable'
++            ? <>
++                <HeaderText>
++                    This is typically an issue with your network connection or the
++                    host's DNS records.
++                </HeaderText>
++                <HeaderText>
++                    You can define rules to handle requests like this from the
++                    Modify page, to return fake data even for servers and hostnames
++                    that aren't accessible.
++                </HeaderText>
++            </>
++        : p.type === 'dns-error'
++            ? <>
++                <HeaderText>
++                    The DNS server hit an unknown error looking up this hostname.
++                    This is likely due to a issue in your DNS configuration or network
++                    connectivity, and may just be a temporary issue.
++                </HeaderText>
++                <HeaderText>
++                    You can define rules to handle requests like this from the
++                    Modify page, to return fake data even for servers and hostnames
++                    that don't exist or aren't accessible.
++                </HeaderText>
++            </>
++        : p.type === 'untrusted'
++            ? <HeaderText>
++                By default unrecognized certificate authorities (CAs) are only accepted for localhost servers, but {
++                    p.isPaidUser
++                        ? 'additional CAs can be trusted from the Settings page.'
++                        : 'Pro users can trust additional CAs or disable HTTPS validation for a host entirely.'
++                }
++            </HeaderText>
++        : isWhitelistable(p.type)
++            ? <HeaderText>
++                By default this is only allowed for localhost servers, but {
++                    p.isPaidUser
++                        ? 'other hosts can be added to the whitelist from the Settings page.'
++                        : 'Pro users can whitelist other custom hosts.'
++                }
++            </HeaderText>
++        : p.type === 'connection-refused'
++            ? <HeaderText>
++                This typically means the server isn't running on the port you're using, though
++                it is possible this is an intermittent connection issue. You can either try
++                again, or create a rule for requests like this to avoid sending them upstream at all.
++            </HeaderText>
++        : p.type === 'connection-reset'
++            ? <HeaderText>
++                This could be due to a connection issue, or an issue with the server.
++                This may be an intermittent issue that will be solved by retrying the request, or
++                you can create a rule for requests like this to avoid sending them upstream at all.
++            </HeaderText>
++        : p.type === 'client-abort'
++            ? <HeaderText>
++                This could be due to connection issues, problems within the client, or that
++                the client simply no longer wanted to receive the response and closed the
++                connection intentionally.
++            </HeaderText>
++        : p.type === 'client-timeout'
++            ? <HeaderText>
++                This could be due to connection issues, problems within the client, or delays
++                generating the complete body of the request. This might be resolved by retrying
++                the request, or sending a simpler request with a smaller or easier to generate body.
++            </HeaderText>
++        : p.type === 'server-timeout'
++            ? <HeaderText>
++                This could be due to connection issues, problems within the server, or issues
++                with handling this request specifically. This might be resolved by retrying
++                the request, or you can create a rule for requests like this to avoid sending
++                them upstream at all.
++            </HeaderText>
++        : isClientBug(p.type)
++            ? <HeaderText>
++                This means the client sent WireLens some fundamentally invalid data that does
++                not follow the HTTP spec. That suggests either a major bug in the client, or that
++                they're not sending HTTP at all.
++            </HeaderText>
++        : p.type === 'server-unparseable'
++            ? <HeaderText>
++                This means the server sent WireLens some fundamentally invalid data that does
++                not follow the HTTP spec. That suggests either a major bug in the server, or that
++                they're not sending HTTP at all.
++            </HeaderText>
++        : p.type === 'header-overflow'
++            ? <HeaderText>
++                { desktopVersion.value && advancedHeaderOverflowSupported
++                    ? <>
++                        This means the request included more than 100KB of headers. The HTTP specification
++                        doesn't set a max length, but most servers will refuse to process anything longer
++                        than 8KB. This is likely an issue with your client, but if necessary you can increase
++                        the WireLens limit by setting <code>max-http-header-size</code> using the <code>HTTPTOOLKIT_NODE_OPTIONS</code> environment variable.
++                    </>
++                : desktopVersion.value // Old desktop:
++                    ? <>
 +                        In more recent WireLens versions the built-in limit has been increased, so please
 +                        update WireLens to handle requests like these.
-                     </>
-                 : // Non-desktop use:
-                     <>
-@@ -277,7 +277,7 @@ export const HttpErrorHeader = (p: {
-             </HeaderText>
-         : p.type === 'invalid-method'
-             ? <HeaderText>
--                Because this method is unrecognized, HTTP Toolkit doesn't know how it should
++                    </>
++                : // Non-desktop use:
++                    <>
++                        The HTTP specification doesn't set a max length for HTTP headers, but most
++                        servers will refuse to process anything longer than 8KB.
++                    </>
++                }
++            </HeaderText>
++        : p.type === 'invalid-method'
++            ? <HeaderText>
 +                Because this method is unrecognized, WireLens doesn't know how it should
-                 be handled, and cannot safely forward it on elsewhere. If you think this
-                 method should be supported, please <a
-                     href='https://github.com/httptoolkit/httptoolkit/issues/new'
-@@ -297,7 +297,7 @@ export const HttpErrorHeader = (p: {
-             </HeaderText>
-         : p.type === 'unknown'
-             ? <HeaderText>
--                It's not clear what's gone wrong here, but for some reason HTTP Toolkit
++                be handled, and cannot safely forward it on elsewhere. If you think this
++                method should be supported, please <a
++                    href='https://github.com/OussamaToumirt/wirelens/issues/new'
++                >
++                    get in touch
++                </a>.
++            </HeaderText>
++        : p.type === 'invalid-http-version'
++            ? <HeaderText>
++                The client may be using a newer or experimental HTTP version that
++                WireLens doesn't yet support. If you think this version should be supported,
++                please <a
++                    href='https://github.com/OussamaToumirt/wirelens/issues/new'
++                >
++                    get in touch
++                </a>.
++            </HeaderText>
++        : p.type === 'unknown'
++            ? <HeaderText>
 +                It's not clear what's gone wrong here, but for some reason WireLens
-                 couldn't successfully and/or securely complete this request.
-                 This might be an intermittent issue, and may be resolved by retrying
-                 the request.
++                couldn't successfully and/or securely complete this request.
++                This might be an intermittent issue, and may be resolved by retrying
++                the request.
++            </HeaderText>
++        : unreachableCheck(p.type)}
++
++        { isInitialRequestError(p.type) && <HeaderText>
++            The data shown below is a best guess from the data that was available
++            and parseable, and may be incomplete or inaccurate.
++        </HeaderText> }
++
++        <HeaderButton onClick={p.ignoreError} onKeyPress={clickOnEnter}>
++            Ignore
++        </HeaderButton>
++
++        { isMockable(p.type)
++            ? <HeaderButton onClick={p.createRuleFromRequest} onKeyPress={clickOnEnter}>
++                Create a rule
++            </HeaderButton>
++        : isWhitelistable(p.type)
++            ? (p.isPaidUser
++                ? <HeaderButton onClick={() => p.navigate('/settings')} onKeyPress={clickOnEnter}>
++                    Go to Settings
++                </HeaderButton>
++                : <HeaderButton
++                    onClick={() => p.getPro(`error-header-${p.type}`)}
++                    onKeyPress={clickOnEnter}
++                >
++                    Get Pro
++                </HeaderButton>
++            )
++        : null }
++
++    </HeaderCard>;
+ };
+\ No newline at end of file
+diff --git a/src/components/view/http/http-export-card.tsx b/src/components/view/http/http-export-card.tsx
+index e2c1322..04e742f 100644
+--- a/src/components/view/http/http-export-card.tsx
++++ b/src/components/view/http/http-export-card.tsx
+@@ -86,7 +86,7 @@ const ExportSnippetEditor = observer((p: {
+         snippet = dedent`
+             Could not generate a snippet for this request
+ 
+-            Is this unexpected? Please file a bug at github.com/httptoolkit/httptoolkit.
++            Is this unexpected? Please file a bug at github.com/OussamaToumirt/wirelens.
+         `;
+     }
+ 
 diff --git a/src/components/view/multi-selection-summary-pane.tsx b/src/components/view/multi-selection-summary-pane.tsx
-index 074f9bc..07d7a04 100644
+index 074f9bc..2124ec9 100644
 --- a/src/components/view/multi-selection-summary-pane.tsx
 +++ b/src/components/view/multi-selection-summary-pane.tsx
 @@ -190,7 +190,7 @@ export const MultiSelectionSummaryPane = inject('accountStore', 'uiStore')(obser
@@ -707,6 +1387,15 @@ index 074f9bc..07d7a04 100644
              disabled={!isPaidUser || httpCount === 0}
              onClick={props.onBuildRule}
          >
+@@ -207,7 +207,7 @@ export const MultiSelectionSummaryPane = inject('accountStore', 'uiStore')(obser
+                 const harContent = JSON.stringify(
+                     await generateHar(selectedEvents, { bodySizeLimit: Infinity })
+                 );
+-                const filename = `HTTPToolkit_${
++                const filename = `WireLens_${
+                     dateFns.format(Date.now(), 'YYYY-MM-DD_HH-mm')
+                 }.har`;
+                 saveFile(filename, 'application/har+json;charset=utf-8', harContent);
 diff --git a/src/components/view/raw-tunnel-details-pane.tsx b/src/components/view/raw-tunnel-details-pane.tsx
 index ea682cf..ac85df9 100644
 --- a/src/components/view/raw-tunnel-details-pane.tsx
@@ -804,6 +1493,19 @@ index e0f1076..0de4281 100644
                          from interception by the TLS passthrough configuration in your settings.
                      </p>
                  </Content>
+diff --git a/src/components/view/view-event-list-buttons.tsx b/src/components/view/view-event-list-buttons.tsx
+index 0102843..2f134d4 100644
+--- a/src/components/view/view-event-list-buttons.tsx
++++ b/src/components/view/view-event-list-buttons.tsx
+@@ -48,7 +48,7 @@ export const ExportAsHarButton = inject('accountStore')(observer((props: {
+             const harContent = JSON.stringify(
+                 await generateHar(props.events)
+             );
+-            const filename = `HTTPToolkit_${
++            const filename = `WireLens_${
+                 dateFns.format(Date.now(), 'YYYY-MM-DD_HH-mm')
+             }.har`;
+ 
 diff --git a/src/images/loading-logo.png b/src/images/loading-logo.png
 index 84a31e1a6695f9cfa54a0a55d46c76af438642de..c568614586c70b36cf4e0bcc905208cdfb38699f 100644
 GIT binary patch
@@ -1540,7 +2242,7 @@ zFPQY0r1fDEJJO#n{ch54lK&`I-6A`Zrkb(HKZ`5LS9u2l00000fbQ}a`qBY_6M#DP
 P00000NkvXXu0mjf<9;)C
 
 diff --git a/src/images/logo-icon.svg b/src/images/logo-icon.svg
-index 50a7b50..ba12a33 100644
+index 50a7b50..2e1cc98 100644
 --- a/src/images/logo-icon.svg
 +++ b/src/images/logo-icon.svg
 @@ -1,18 +1,6 @@
@@ -1561,14 +2263,15 @@ index 50a7b50..ba12a33 100644
 -	C29,39.6,31.3,37.2,34.2,37.2z"/>
 -<path class="st0" d="M34.2,66.2h2c2.9,0,5.2,2.3,5.2,5.2v2c0,2.9-2.3,5.2-5.2,5.2h-2c-2.9,0-5.2-2.3-5.2-5.2v-2
 -	C29,68.5,31.3,66.2,34.2,66.2z"/>
+-</svg>
 +<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
 +  <rect width="120" height="120" rx="26" fill="#0EA5A4"/>
 +  <circle cx="56" cy="56" r="30" fill="none" stroke="#FFFFFF" stroke-width="11"/>
 +  <line x1="78" y1="78" x2="102" y2="102" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/>
 +  <polyline points="30.00,56.00 30.81,55.12 31.62,54.24 32.44,53.39 33.25,52.56 34.06,51.76 34.88,51.00 35.69,50.29 36.50,49.64 37.31,49.04 38.12,48.52 38.94,48.06 39.75,47.69 40.56,47.39 41.38,47.17 42.19,47.04 43.00,47.00 43.81,47.04 44.62,47.17 45.44,47.39 46.25,47.69 47.06,48.06 47.88,48.52 48.69,49.04 49.50,49.64 50.31,50.29 51.12,51.00 51.94,51.76 52.75,52.56 53.56,53.39 54.38,54.24 55.19,55.12 56.00,56.00 56.81,56.88 57.62,57.76 58.44,58.61 59.25,59.44 60.06,60.24 60.88,61.00 61.69,61.71 62.50,62.36 63.31,62.96 64.12,63.48 64.94,63.94 65.75,64.31 66.56,64.61 67.38,64.83 68.19,64.96 69.00,65.00 69.81,64.96 70.62,64.83 71.44,64.61 72.25,64.31 73.06,63.94 73.88,63.48 74.69,62.96 75.50,62.36 76.31,61.71 77.12,61.00 77.94,60.24 78.75,59.44 79.56,58.61 80.38,57.76 81.19,56.88 82.00,56.00" fill="none" stroke="#0F2936" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
- </svg>
++</svg>
 diff --git a/src/index.html b/src/index.html
-index d92e87c..cad181a 100644
+index d92e87c..1aa3d33 100644
 --- a/src/index.html
 +++ b/src/index.html
 @@ -6,7 +6,7 @@
@@ -1580,7 +2283,7 @@ index d92e87c..cad181a 100644
      <style>
          html, body {
              height: 100%;
-@@ -152,7 +152,7 @@
+@@ -152,11 +152,11 @@
                  if (error.isTimeout) {
                      errorElement.innerText = 'This is taking longer than normal...';
                      errorDetailsElement.innerHTML = 'If this persists or happens often ' +
@@ -1589,7 +2292,12 @@ index d92e87c..cad181a 100644
                  } else {
                      errorElement.innerText = 'Startup failed: "' + error.message + '"';
                      errorDetailsElement.innerHTML = 'Please ' +
-@@ -173,9 +173,9 @@
+-                        '<a href="https://github.com/httptoolkit/httptoolkit/issues/new">file an issue</a>, ' +
++                        '<a href="https://github.com/OussamaToumirt/wirelens/issues/new">file an issue</a>, ' +
+                         "and we'll get this fixed ASAP";
+                 }
+             });
+@@ -173,12 +173,12 @@
                  }));
  
                  alert(
@@ -1600,7 +2308,11 @@ index d92e87c..cad181a 100644
 +                    "This may mean your WireLens installation is very outdated and requires a manual " +
                      "update to continue working. Please try reinstalling the app from httptoolkit.com." +
                      "\n\n" +
-                     "If that doesn't work, please report this bug at github.com/httptoolkit/httptoolkit to " +
+-                    "If that doesn't work, please report this bug at github.com/httptoolkit/httptoolkit to " +
++                    "If that doesn't work, please report this bug at github.com/OussamaToumirt/wirelens to " +
+                     "get more help."
+                 );
+             }
 diff --git a/src/metrics.ts b/src/metrics.ts
 index 9ac4a89..1ef8150 100644
 --- a/src/metrics.ts
@@ -2001,6 +2713,495 @@ index c559577..0b93f45 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/src/model/http/exchange-breakpoint.ts b/src/model/http/exchange-breakpoint.ts
+index 49f160a..796872c 100644
+--- a/src/model/http/exchange-breakpoint.ts
++++ b/src/model/http/exchange-breakpoint.ts
+@@ -1,242 +1,242 @@
+-import * as _ from 'lodash';
+-import { observable, action, reaction, observe } from "mobx";
+-import dedent from 'dedent';
+-
+-import {
+-    Headers,
+-    MockttpBreakpointedRequest,
+-    MockttpBreakpointedResponse,
+-    MockttpBreakpointRequestResult,
+-    BreakpointRequestResult,
+-    BreakpointResponseResult,
+-    MockttpBreakpointResponseResult,
+-    HttpVersion,
+-} from "../../types";
+-import { logError } from "../../errors";
+-
+-import { stringToBuffer } from '../../util/buffer';
+-import { getDeferred, Deferred } from "../../util/promise";
+-import {
+-    asHeaderArray,
+-    withHeaderValue,
+-    getHeaderValue,
+-    headersToRawHeaders,
+-    rawHeadersToHeaders
+-} from './headers';
+-
+-import {
+-    RAW_BODY_SUPPORTED,
+-    serverVersion,
+-    versionSatisfies
+-} from '../../services/service-versions';
+-import { decodeBody } from "../../services/ui-worker-api";
+-
+-import { EditableBody } from './editable-body';
+-import { getStatusMessage } from "./http-docs";
+-
+-function getBody(message: MockttpBreakpointedRequest | MockttpBreakpointedResponse) {
+-    return decodeBody(
+-        message.body.buffer,
+-        asHeaderArray(message.headers['content-encoding'])
+-    ).catch((e) => {
+-        console.log("Breakpoint body decoding failed", e);
+-        const error = dedent`
+-            HTTP TOOLKIT ERROR: Could not decode body, \
+-            check content-encoding
+-        `;
+-        return {
+-            encoded: stringToBuffer(error),
+-            decoded: stringToBuffer(error)
+-        };
+-    });
+-}
+-
+-const omitPseudoHeaders = (headers: Headers) =>
+-    _.omitBy(headers, (_v, key) => key.startsWith(':')) as Headers;
+-
+-export async function getRequestBreakpoint(request: MockttpBreakpointedRequest) {
+-    const { encoded, decoded } = await getBody(request);
+-
+-    const headers = observable(request.headers);
+-
+-    return new RequestBreakpoint(
+-        {
+-            method: request.method,
+-            url: request.url,
+-            rawHeaders: request.rawHeaders ?? headersToRawHeaders(request.headers)
+-        },
+-        decoded,
+-        encoded
+-    );
+-}
+-
+-export function getDummyResponseBreakpoint(httpVersion: HttpVersion) {
+-    const breakpoint = new ResponseBreakpoint(
+-        {
+-            statusCode: 200,
+-            statusMessage: undefined,
+-            rawHeaders: httpVersion >= 2 ? [[':status', '200']] : [],
+-        },
+-        stringToBuffer(''),
+-        stringToBuffer('')
+-    );
+-
+-    return breakpoint;
+-}
+-
+-export async function getResponseBreakpoint(response: MockttpBreakpointedResponse) {
+-    const expectedStatusMessage = getStatusMessage(response.statusCode)
+-    const statusMessage = expectedStatusMessage === response.statusMessage
+-        ? undefined
+-        : response.statusMessage;
+-    const { encoded, decoded } = await getBody(response);
+-
+-    return new ResponseBreakpoint(
+-        {
+-            statusCode: response.statusCode,
+-            statusMessage: statusMessage,
+-            rawHeaders: response.rawHeaders ?? headersToRawHeaders(response.headers)
+-        },
+-        decoded,
+-        encoded
+-    );
+-}
+-
+-type BreakpointInProgress = BreakpointRequestResult | BreakpointResponseResult;
+-
+-type BreakpointMetadata = Omit<BreakpointInProgress, 'body' | 'rawBody'>;
+-
+-type BreakpointResumeType<T extends BreakpointInProgress> =
+-    T extends BreakpointRequestResult
+-        ? MockttpBreakpointRequestResult
+-        : MockttpBreakpointResponseResult;
+-
+-
+-export abstract class Breakpoint<T extends BreakpointInProgress> {
+-
+-    protected readonly deferred: Deferred<BreakpointResumeType<T>>;
+-
+-    @observable.shallow
+-    private resultMetadata: Omit<T, 'body' | 'rawBody'>;
+-    private readonly editableBody: EditableBody;
+-
+-    constructor(
+-        result: Omit<T, 'body' | 'rawBody'>,
+-        decodedBody: Buffer,
+-        encodedBody: Buffer | undefined
+-    ) {
+-        this.deferred = getDeferred();
+-        this.resultMetadata = result;
+-        this.editableBody = new EditableBody(
+-            decodedBody,
+-            encodedBody,
+-            () => this.resultMetadata.rawHeaders
+-        );
+-
+-        // Update the content-length when necessary, if it was previously correct
+-        observe(this.editableBody, 'latestEncodedLength', ({
+-            oldValue: previousEncodedLength,
+-            newValue: newEncodedLength
+-        }) => {
+-            const { rawHeaders } = this.resultMetadata;
+-            const previousContentLength = parseInt(getHeaderValue(rawHeaders, 'content-length') || '', 10);
+-
+-            // If the content-length was previously correct, keep it correct:
+-            if (previousContentLength === previousEncodedLength) {
+-                this.updateMetadata({
+-                    rawHeaders: withHeaderValue(rawHeaders, {
+-                        'Content-Length': newEncodedLength?.toString() ?? '0'
+-                    })
+-                });
+-            }
+-        });
+-
+-        // When content-length is first added, default to the correct value
+-        let oldContentLength = getHeaderValue(this.resultMetadata.rawHeaders, 'content-length');
+-        reaction(() => getHeaderValue(this.resultMetadata.rawHeaders, 'content-length'), (newContentLength) => {
+-            if (oldContentLength === undefined && newContentLength === "") {
+-                const { rawHeaders } = this.resultMetadata;
+-                this.updateMetadata({
+-                    rawHeaders: withHeaderValue(rawHeaders, {
+-                        'Content-Length': this.editableBody.latestEncodedLength?.toString() ?? '0'
+-                    })
+-                });
+-            }
+-
+-            oldContentLength = newContentLength;
+-        });
+-    }
+-
+-    get inProgressResult(): T {
+-        return Object.assign(
+-            {
+-                body: this.editableBody as EditableBody
+-            },
+-            this.resultMetadata,
+-        ) as T;
+-    }
+-
+-    @action.bound
+-    updateMetadata(update: Partial<BreakpointMetadata>) {
+-        this.resultMetadata = {
+-            ...this.resultMetadata,
+-            ..._.omit(update, 'body', 'rawBody')
+-        };
+-    }
+-
+-    @action.bound
+-    updateBody(body: Buffer) {
+-        this.editableBody.updateDecodedBody(body);
+-    }
+-
+-    waitForCompletedResult() {
+-        return this.deferred.promise;
+-    }
+-
+-    readonly resume = async () => {
+-        this.deferred.resolve({
+-            ...this.resultMetadata,
+-
+-            ...(versionSatisfies(await serverVersion, RAW_BODY_SUPPORTED)
+-                // Mockttp v3+ skips auto-encoding only if you use rawBody:
+-                ? { rawBody: await this.editableBody.encodingBestEffortPromise }
+-                // Old Mockttp doesn't support rawBody, never auto-encodes:
+-                : { body: await this.editableBody.encodingBestEffortPromise }
+-            ),
+-
+-            // Pseudo-headers those will be generated automatically from the other,
+-            // fields, as part of the rest of the request process.
+-            headers: omitPseudoHeaders(rawHeadersToHeaders(this.resultMetadata.rawHeaders))
+-        } as unknown as BreakpointResumeType<T>);
+-    }
+-
+-    abstract close(): void;
+-
+-    reject(error: Error) {
+-        this.deferred.reject(error);
+-    }
+-}
+-
+-class RequestBreakpoint extends Breakpoint<BreakpointRequestResult> {
+-    respondDirectly(result: MockttpBreakpointResponseResult) {
+-        this.deferred.resolve({ response: result });
+-    }
+-
+-    close = () => {
+-        this.deferred.resolve({ response: 'close' });
+-    }
+-}
+-
+-class ResponseBreakpoint extends Breakpoint<BreakpointResponseResult> {
+-    close = () => {
+-        this.deferred.resolve('close');
+-    }
+-}
+-
+-type RequestBreakpointType = RequestBreakpoint;
+-type ResponseBreakpointType = ResponseBreakpoint
+-
+-export {
+-    RequestBreakpointType as RequestBreakpoint,
+-    ResponseBreakpointType as ResponseBreakpoint
++import * as _ from 'lodash';
++import { observable, action, reaction, observe } from "mobx";
++import dedent from 'dedent';
++
++import {
++    Headers,
++    MockttpBreakpointedRequest,
++    MockttpBreakpointedResponse,
++    MockttpBreakpointRequestResult,
++    BreakpointRequestResult,
++    BreakpointResponseResult,
++    MockttpBreakpointResponseResult,
++    HttpVersion,
++} from "../../types";
++import { logError } from "../../errors";
++
++import { stringToBuffer } from '../../util/buffer';
++import { getDeferred, Deferred } from "../../util/promise";
++import {
++    asHeaderArray,
++    withHeaderValue,
++    getHeaderValue,
++    headersToRawHeaders,
++    rawHeadersToHeaders
++} from './headers';
++
++import {
++    RAW_BODY_SUPPORTED,
++    serverVersion,
++    versionSatisfies
++} from '../../services/service-versions';
++import { decodeBody } from "../../services/ui-worker-api";
++
++import { EditableBody } from './editable-body';
++import { getStatusMessage } from "./http-docs";
++
++function getBody(message: MockttpBreakpointedRequest | MockttpBreakpointedResponse) {
++    return decodeBody(
++        message.body.buffer,
++        asHeaderArray(message.headers['content-encoding'])
++    ).catch((e) => {
++        console.log("Breakpoint body decoding failed", e);
++        const error = dedent`
++            WIRELENS ERROR: Could not decode body, \
++            check content-encoding
++        `;
++        return {
++            encoded: stringToBuffer(error),
++            decoded: stringToBuffer(error)
++        };
++    });
++}
++
++const omitPseudoHeaders = (headers: Headers) =>
++    _.omitBy(headers, (_v, key) => key.startsWith(':')) as Headers;
++
++export async function getRequestBreakpoint(request: MockttpBreakpointedRequest) {
++    const { encoded, decoded } = await getBody(request);
++
++    const headers = observable(request.headers);
++
++    return new RequestBreakpoint(
++        {
++            method: request.method,
++            url: request.url,
++            rawHeaders: request.rawHeaders ?? headersToRawHeaders(request.headers)
++        },
++        decoded,
++        encoded
++    );
++}
++
++export function getDummyResponseBreakpoint(httpVersion: HttpVersion) {
++    const breakpoint = new ResponseBreakpoint(
++        {
++            statusCode: 200,
++            statusMessage: undefined,
++            rawHeaders: httpVersion >= 2 ? [[':status', '200']] : [],
++        },
++        stringToBuffer(''),
++        stringToBuffer('')
++    );
++
++    return breakpoint;
++}
++
++export async function getResponseBreakpoint(response: MockttpBreakpointedResponse) {
++    const expectedStatusMessage = getStatusMessage(response.statusCode)
++    const statusMessage = expectedStatusMessage === response.statusMessage
++        ? undefined
++        : response.statusMessage;
++    const { encoded, decoded } = await getBody(response);
++
++    return new ResponseBreakpoint(
++        {
++            statusCode: response.statusCode,
++            statusMessage: statusMessage,
++            rawHeaders: response.rawHeaders ?? headersToRawHeaders(response.headers)
++        },
++        decoded,
++        encoded
++    );
++}
++
++type BreakpointInProgress = BreakpointRequestResult | BreakpointResponseResult;
++
++type BreakpointMetadata = Omit<BreakpointInProgress, 'body' | 'rawBody'>;
++
++type BreakpointResumeType<T extends BreakpointInProgress> =
++    T extends BreakpointRequestResult
++        ? MockttpBreakpointRequestResult
++        : MockttpBreakpointResponseResult;
++
++
++export abstract class Breakpoint<T extends BreakpointInProgress> {
++
++    protected readonly deferred: Deferred<BreakpointResumeType<T>>;
++
++    @observable.shallow
++    private resultMetadata: Omit<T, 'body' | 'rawBody'>;
++    private readonly editableBody: EditableBody;
++
++    constructor(
++        result: Omit<T, 'body' | 'rawBody'>,
++        decodedBody: Buffer,
++        encodedBody: Buffer | undefined
++    ) {
++        this.deferred = getDeferred();
++        this.resultMetadata = result;
++        this.editableBody = new EditableBody(
++            decodedBody,
++            encodedBody,
++            () => this.resultMetadata.rawHeaders
++        );
++
++        // Update the content-length when necessary, if it was previously correct
++        observe(this.editableBody, 'latestEncodedLength', ({
++            oldValue: previousEncodedLength,
++            newValue: newEncodedLength
++        }) => {
++            const { rawHeaders } = this.resultMetadata;
++            const previousContentLength = parseInt(getHeaderValue(rawHeaders, 'content-length') || '', 10);
++
++            // If the content-length was previously correct, keep it correct:
++            if (previousContentLength === previousEncodedLength) {
++                this.updateMetadata({
++                    rawHeaders: withHeaderValue(rawHeaders, {
++                        'Content-Length': newEncodedLength?.toString() ?? '0'
++                    })
++                });
++            }
++        });
++
++        // When content-length is first added, default to the correct value
++        let oldContentLength = getHeaderValue(this.resultMetadata.rawHeaders, 'content-length');
++        reaction(() => getHeaderValue(this.resultMetadata.rawHeaders, 'content-length'), (newContentLength) => {
++            if (oldContentLength === undefined && newContentLength === "") {
++                const { rawHeaders } = this.resultMetadata;
++                this.updateMetadata({
++                    rawHeaders: withHeaderValue(rawHeaders, {
++                        'Content-Length': this.editableBody.latestEncodedLength?.toString() ?? '0'
++                    })
++                });
++            }
++
++            oldContentLength = newContentLength;
++        });
++    }
++
++    get inProgressResult(): T {
++        return Object.assign(
++            {
++                body: this.editableBody as EditableBody
++            },
++            this.resultMetadata,
++        ) as T;
++    }
++
++    @action.bound
++    updateMetadata(update: Partial<BreakpointMetadata>) {
++        this.resultMetadata = {
++            ...this.resultMetadata,
++            ..._.omit(update, 'body', 'rawBody')
++        };
++    }
++
++    @action.bound
++    updateBody(body: Buffer) {
++        this.editableBody.updateDecodedBody(body);
++    }
++
++    waitForCompletedResult() {
++        return this.deferred.promise;
++    }
++
++    readonly resume = async () => {
++        this.deferred.resolve({
++            ...this.resultMetadata,
++
++            ...(versionSatisfies(await serverVersion, RAW_BODY_SUPPORTED)
++                // Mockttp v3+ skips auto-encoding only if you use rawBody:
++                ? { rawBody: await this.editableBody.encodingBestEffortPromise }
++                // Old Mockttp doesn't support rawBody, never auto-encodes:
++                : { body: await this.editableBody.encodingBestEffortPromise }
++            ),
++
++            // Pseudo-headers those will be generated automatically from the other,
++            // fields, as part of the rest of the request process.
++            headers: omitPseudoHeaders(rawHeadersToHeaders(this.resultMetadata.rawHeaders))
++        } as unknown as BreakpointResumeType<T>);
++    }
++
++    abstract close(): void;
++
++    reject(error: Error) {
++        this.deferred.reject(error);
++    }
++}
++
++class RequestBreakpoint extends Breakpoint<BreakpointRequestResult> {
++    respondDirectly(result: MockttpBreakpointResponseResult) {
++        this.deferred.resolve({ response: result });
++    }
++
++    close = () => {
++        this.deferred.resolve({ response: 'close' });
++    }
++}
++
++class ResponseBreakpoint extends Breakpoint<BreakpointResponseResult> {
++    close = () => {
++        this.deferred.resolve('close');
++    }
++}
++
++type RequestBreakpointType = RequestBreakpoint;
++type ResponseBreakpointType = ResponseBreakpoint
++
++export {
++    RequestBreakpointType as RequestBreakpoint,
++    ResponseBreakpointType as ResponseBreakpoint
+ };
+\ No newline at end of file
 diff --git a/src/model/http/har.ts b/src/model/http/har.ts
 index a64f807..89c3f50 100644
 --- a/src/model/http/har.ts
@@ -2209,22 +3410,236 @@ index a9df8b1..960d7a6 100644
                  'Rules are returned in their configured order, within their groups, and each is ' +
                  'summarized rather than returning its full configuration.\n' +
 diff --git a/src/services/ui-api/server-operation-bridge.ts b/src/services/ui-api/server-operation-bridge.ts
-index 920b65f..853a2da 100644
+index 920b65f..82c4a6f 100644
 --- a/src/services/ui-api/server-operation-bridge.ts
 +++ b/src/services/ui-api/server-operation-bridge.ts
-@@ -74,9 +74,9 @@ export function startServerOperationBridge(
-                 // JWT must be false (not a paid user) or a valid JWT. N.b. we don't use
-                 // _maybe_ paid user - if not sure, we treat as free until the updated
-                 // JWT arrives, which will refresh this automatically.
+@@ -1,113 +1,113 @@
+-import { autorun, IReactionDisposer } from 'mobx';
+-import { AccountStore } from '../../model/account/account-store';
+-import { getServerPort } from '../desktop-api';
+-import { OperationRegistry } from './api-registry';
+-
+-const RECONNECT_BASE_MS = 1_000;
+-const RECONNECT_MAX_MS = 30_000;
+-
+-export function startServerOperationBridge(
+-    registry: OperationRegistry,
+-    authToken: string | undefined,
+-    accountStore: AccountStore
+-) {
+-    let ws: WebSocket | null = null;
+-    let reconnectDelay = RECONNECT_BASE_MS;
+-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+-    let disposers: IReactionDisposer[] = [];
+-
+-    function connect() {
+-        const url = `ws://127.0.0.1:${getServerPort()}/ui-operations`;
+-
+-        try {
+-            ws = new WebSocket(url);
+-        } catch {
+-            scheduleReconnect();
+-            return;
+-        }
+-
+-        ws.onopen = () => {
+-            reconnectDelay = RECONNECT_BASE_MS;
+-            sendConfiguration();
+-        };
+-
+-        ws.onmessage = (event) => {
+-            try {
+-                const msg = JSON.parse(event.data as string);
+-                handleMessage(msg);
+-            } catch {}
+-        };
+-
+-        ws.onclose = () => {
+-            disposeAutoruns();
+-            ws = null;
+-            scheduleReconnect();
+-        };
+-
+-        ws.onerror = () => {
+-            // Error will be followed by close
+-        };
+-    }
+-
+-    function disposeAutoruns() {
+-        disposers.forEach(d => d());
+-        disposers = [];
+-    }
+-
+-    function scheduleReconnect() {
+-        if (reconnectTimer) return;
+-        reconnectTimer = setTimeout(() => {
+-            reconnectTimer = null;
+-            reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
+-            connect();
+-        }, reconnectDelay);
+-    }
+-
+-    function sendConfiguration() {
+-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+-
+-        // On each JWT update, forward it to the server to manage auth there.
+-        disposers.push(autorun(() => {
+-            ws!.send(JSON.stringify({
+-                type: 'auth',
+-                token: authToken,
+-                // JWT must be false (not a paid user) or a valid JWT. N.b. we don't use
+-                // _maybe_ paid user - if not sure, we treat as free until the updated
+-                // JWT arrives, which will refresh this automatically.
 -                jwt: accountStore.user.isPaidUser()
 -                    ? accountStore.userJwt
 -                    : false
+-            }));
+-        }));
+-
+-        disposers.push(autorun(() => {
+-            ws!.send(JSON.stringify({
+-                type: 'operations',
+-                operations: registry.getDefinitions()
+-            }));
+-        }));
+-    }
+-
+-    function handleMessage(msg: any) {
+-        if (!msg) return;
+-
+-        if (msg.type === 'auth-result') {
+-            if (!msg.success) {
+-                console.warn('Server auth failed:', msg.error);
+-            }
+-            return;
+-        }
+-
+-        if (msg.type !== 'request') return;
+-
+-        const { id, operation, params } = msg;
+-
+-        registry.execute(operation, params || {}).then((result) => {
+-            if (ws && ws.readyState === WebSocket.OPEN) {
+-                ws.send(JSON.stringify({ type: 'response', id, result }));
+-            }
+-        });
+-    }
+-
+-    connect();
+-}
++import { autorun, IReactionDisposer } from 'mobx';
++import { AccountStore } from '../../model/account/account-store';
++import { getServerPort } from '../desktop-api';
++import { OperationRegistry } from './api-registry';
++
++const RECONNECT_BASE_MS = 1_000;
++const RECONNECT_MAX_MS = 30_000;
++
++export function startServerOperationBridge(
++    registry: OperationRegistry,
++    authToken: string | undefined,
++    accountStore: AccountStore
++) {
++    let ws: WebSocket | null = null;
++    let reconnectDelay = RECONNECT_BASE_MS;
++    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
++    let disposers: IReactionDisposer[] = [];
++
++    function connect() {
++        const url = `ws://127.0.0.1:${getServerPort()}/ui-operations`;
++
++        try {
++            ws = new WebSocket(url);
++        } catch {
++            scheduleReconnect();
++            return;
++        }
++
++        ws.onopen = () => {
++            reconnectDelay = RECONNECT_BASE_MS;
++            sendConfiguration();
++        };
++
++        ws.onmessage = (event) => {
++            try {
++                const msg = JSON.parse(event.data as string);
++                handleMessage(msg);
++            } catch {}
++        };
++
++        ws.onclose = () => {
++            disposeAutoruns();
++            ws = null;
++            scheduleReconnect();
++        };
++
++        ws.onerror = () => {
++            // Error will be followed by close
++        };
++    }
++
++    function disposeAutoruns() {
++        disposers.forEach(d => d());
++        disposers = [];
++    }
++
++    function scheduleReconnect() {
++        if (reconnectTimer) return;
++        reconnectTimer = setTimeout(() => {
++            reconnectTimer = null;
++            reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
++            connect();
++        }, reconnectDelay);
++    }
++
++    function sendConfiguration() {
++        if (!ws || ws.readyState !== WebSocket.OPEN) return;
++
++        // On each JWT update, forward it to the server to manage auth there.
++        disposers.push(autorun(() => {
++            ws!.send(JSON.stringify({
++                type: 'auth',
++                token: authToken,
++                // JWT must be false (not a paid user) or a valid JWT. N.b. we don't use
++                // _maybe_ paid user - if not sure, we treat as free until the updated
++                // JWT arrives, which will refresh this automatically.
 +                // WireLens has no accounts, so there's never a JWT. The server
 +                // treats every operation as available regardless.
 +                jwt: false
-             }));
-         }));
- 
++            }));
++        }));
++
++        disposers.push(autorun(() => {
++            ws!.send(JSON.stringify({
++                type: 'operations',
++                operations: registry.getDefinitions()
++            }));
++        }));
++    }
++
++    function handleMessage(msg: any) {
++        if (!msg) return;
++
++        if (msg.type === 'auth-result') {
++            if (!msg.success) {
++                console.warn('Server auth failed:', msg.error);
++            }
++            return;
++        }
++
++        if (msg.type !== 'request') return;
++
++        const { id, operation, params } = msg;
++
++        registry.execute(operation, params || {}).then((result) => {
++            if (ws && ws.readyState === WebSocket.OPEN) {
++                ws.send(JSON.stringify({ type: 'response', id, result }));
++            }
++        });
++    }
++
++    connect();
++}
 diff --git a/src/services/update-management.ts b/src/services/update-management.ts
 index d661096..3516ec7 100644
 --- a/src/services/update-management.ts
@@ -2246,6 +3661,17 @@ index d661096..3516ec7 100644
          "to access the many new features, bug fixes & performance improvements " +
          "available there."
      );
+diff --git a/src/util/export-filenames.ts b/src/util/export-filenames.ts
+index 5badf18..2e4c07d 100644
+--- a/src/util/export-filenames.ts
++++ b/src/util/export-filenames.ts
+@@ -75,5 +75,5 @@ export function buildArchiveFilename(now: Date = new Date()): string {
+     const pad = (n: number) => String(n).padStart(2, '0');
+     const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+         + `_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+-    return `HTTPToolkit_Export_${stamp}.zip`;
++    return `WireLens_Export_${stamp}.zip`;
+ }
 diff --git a/src/util/ui.ts b/src/util/ui.ts
 index 03d3ede..4707ba7 100644
 --- a/src/util/ui.ts
@@ -2259,3 +3685,16 @@ index 03d3ede..4707ba7 100644
                  );
                  return result.resolve(null);
              }
+diff --git a/test/unit/util/export-filenames.spec.ts b/test/unit/util/export-filenames.spec.ts
+index 1ee6d39..e1116b5 100644
+--- a/test/unit/util/export-filenames.spec.ts
++++ b/test/unit/util/export-filenames.spec.ts
+@@ -133,7 +133,7 @@ describe('export-filenames', () => {
+ 
+         it('contains date and time', () => {
+             const name = buildArchiveFilename(new Date(2026, 4, 17, 12, 34));
+-            expect(name).to.equal('HTTPToolkit_Export_2026-05-17_12-34.zip');
++            expect(name).to.equal('WireLens_Export_2026-05-17_12-34.zip');
+         });
+ 
+     });

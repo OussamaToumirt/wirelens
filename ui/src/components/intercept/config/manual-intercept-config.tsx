@@ -78,7 +78,7 @@ const ExportCertificateButton = styled((p: { certContent: string, className?: st
     <PillButton
         className={p.className}
         onClick={() => saveFile(
-            'http-toolkit-ca-certificate.crt',
+            'wirelens-ca-certificate.crt',
             'application/x-x509-ca-cert',
             p.certContent
         )}
@@ -124,7 +124,7 @@ const ManualInterceptConfig = inject('proxyStore')(
                     </p>
                     <p>
                         Want your client to be supported automatically? <Nowrap>
-                            <a href='https://github.com/httptoolkit/httptoolkit/issues/new'>
+                            <a href='https://github.com/OussamaToumirt/wirelens/issues/new'>
                                 Send some feedback
                             </a>
                         </Nowrap>.

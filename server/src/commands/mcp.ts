@@ -162,7 +162,7 @@ const LAUNCH_POLL_MS = 500;
 const OPEN_TIMEOUT_MS = 10_000;
 
 // Default install paths per platform. First match wins. The wrapper scripts
-// (httptoolkit-mcp / .cmd) set HTK_DESKTOP_EXE explicitly, so the env var
+// (wirelens-mcp / .cmd) set HTK_DESKTOP_EXE explicitly, so the env var
 // check below handles the normal "bundled with HTK" case.
 function getDefaultHtkExeCandidates(): string[] {
     if (process.platform === 'darwin') {
@@ -444,7 +444,7 @@ async function runMcpServer(): Promise<void> {
                         tools: { listChanged: true }
                     },
                     serverInfo: {
-                        name: 'httptoolkit',
+                        name: 'wirelens',
                         version: SERVER_VERSION
                     }
                 });

@@ -318,7 +318,7 @@ export class PlanPicker extends React.Component<PlanPickerProps> {
                 </p>
                 <p>
                     Having problems? Open an issue <a
-                        href="https://github.com/httptoolkit/httptoolkit/issues/new/choose"
+                        href="https://github.com/OussamaToumirt/wirelens/issues/new"
                     >on GitHub</a> or email <strong>billing@httptoolkit.com</strong> to ask for help.
                 </p>
                 <Icon

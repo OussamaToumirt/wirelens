@@ -343,7 +343,7 @@ class ModifyPage extends React.Component<ModifyPageProps> {
             serializeRules(this.props.rulesStore.draftRules)
         );
 
-        const filename = `HTTPToolkit_${
+        const filename = `WireLens_${
             dateFns.format(Date.now(), 'YYYY-MM-DD_HH-mm')
         }.htkrules`;
 

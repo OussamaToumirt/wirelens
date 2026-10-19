@@ -27,7 +27,7 @@ interface IntegrationConfig {
 const jsonClientConfig = (mcpCommand: { command: string; args: string[] }) =>
     JSON.stringify({
         mcpServers: {
-            'http-toolkit': {
+            'wirelens': {
                 command: mcpCommand.command,
                 ...(mcpCommand.args.length > 0 ? { args: mcpCommand.args } : {})
             }
@@ -37,7 +37,7 @@ const jsonClientConfig = (mcpCommand: { command: string; args: string[] }) =>
 const vscodeClientConfig = (mcpCommand: { command: string; args: string[] }) =>
     JSON.stringify({
         servers: {
-            'http-toolkit': {
+            'wirelens': {
                 type: 'stdio',
                 command: mcpCommand.command,
                 ...(mcpCommand.args.length > 0 ? { args: mcpCommand.args } : {})
@@ -56,7 +56,7 @@ const INTEGRATIONS: IntegrationConfig[] = [
         name: 'Claude Code',
         description: 'Register WireLens as an MCP server in Claude Code by running this command in your terminal:',
         buildSnippet: ({ command, args }) =>
-            `claude mcp add http-toolkit -- ${[command, ...args].map(shellEscape).join(' ')}`,
+            `claude mcp add wirelens -- ${[command, ...args].map(shellEscape).join(' ')}`,
         docsUrl: 'https://docs.claude.com/en/docs/claude-code/mcp'
     },
     {
@@ -71,7 +71,7 @@ const INTEGRATIONS: IntegrationConfig[] = [
         name: 'Codex',
         description: 'Register WireLens as an MCP server in Codex by running this command in your terminal:',
         buildSnippet: ({ command, args }) =>
-            `codex mcp add http-toolkit -- ${[command, ...args].map(shellEscape).join(' ')}`,
+            `codex mcp add wirelens -- ${[command, ...args].map(shellEscape).join(' ')}`,
         docsUrl: 'https://developers.openai.com/codex/mcp/'
     },
     {
