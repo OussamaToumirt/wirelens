@@ -1,7 +1,7 @@
 {
   "name": "wirelens-desktop",
   "productName": "WireLens",
-  "version": "1.27.2",
+  "version": "1.27.3",
   "homepage": "https://github.com/OussamaToumirt/wirelens",
   "private": true,
   "description": "HTTP(S) debugging, development & testing tool (fork of HTTP Toolkit)",
@@ -24,7 +24,7 @@
   "author": "WireLens contributors (based on HTTP Toolkit by Tim Perry)",
   "license": "AGPL-3.0-or-later",
   "config": {
-    "httptoolkit-server-version": "1.27.2"
+    "httptoolkit-server-version": "1.27.3"
   },
   "build": {
     "appId": "dev.wirelens.desktop",

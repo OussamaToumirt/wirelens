@@ -22,8 +22,8 @@ android {
         applicationId = "dev.wirelens.android"
         minSdk = 21
         targetSdk = 37
-        versionCode = 37
-        versionName = "1.7.0"
+        versionCode = 38
+        versionName = "1.7.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
